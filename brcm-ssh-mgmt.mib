@@ -1,0 +1,365 @@
+--****************************************************************************
+--
+-- Copyright (c) 2005-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-ssh-mgmt.mib
+--    Author:   Kevin O'Neal
+--    Creation Date: October 27, 2005
+--
+--****************************************************************************
+--    Description:
+--
+--              private MIB for runtime management of secure shell.
+--
+--****************************************************************************
+--    Revision History:
+--
+--****************************************************************************
+
+BRCM-SSH-MGMT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    NOTIFICATION-TYPE,
+    Integer32,
+    Unsigned32,
+    IpAddress,
+    TimeTicks
+        FROM SNMPv2-SMI
+    DisplayString,
+    TruthValue
+        FROM SNMPv2-TC
+    InetAddressType,
+    InetAddress
+        FROM INET-ADDRESS-MIB
+    cableDataMgmtBase
+        FROM BRCM-CABLEDATA-MGMT-MIB;
+                
+sshMgmt MODULE-IDENTITY
+    LAST-UPDATED "201407290000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "       BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for runtime management and configuration
+         of objects related to SSH (Secure Shell)."
+    REVISION      "201407290000Z"
+    DESCRIPTION
+        "Fixed copyright header date."
+    REVISION      "201406270000Z"
+    DESCRIPTION
+        "Fixed smilint errors. Changed sshHackerAddressType/sshHackerAddress
+         back to not-accessible. Removed implicit indices from sshHackerTrap."
+    REVISION      "201401080000Z"
+    DESCRIPTION
+        "Textual updates."
+    REVISION      "201209120000Z"
+    DESCRIPTION
+        "Added object sshWanAccessTimeout"
+    REVISION      "200702050000Z"
+    DESCRIPTION
+        "Module description was updated. 
+         Compilability issues were cleaned up: 
+         - Chronological order of revision history was corrected.
+         - Changed access of objects sshHackerAddressType and 
+           sshHackerAddress from not-accessible to accessible-for-notify
+           so that they may legally be included in the object list for
+           the sshHackerTrap notification."
+    REVISION      "200609290000Z"
+    DESCRIPTION
+        "Added object sshHackerInactivityTimeout."    
+    REVISION      "200602020000Z"
+    DESCRIPTION
+        "Added object sshSessionInactivityTimeout."    
+    REVISION      "200510270000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cableDataMgmtBase 4 }
+    
+sshIpStackInterfaces OBJECT-TYPE
+    SYNTAX      BITS {
+                interface1(0),
+                interface2(1),
+                interface3(2),
+                interface4(3),
+                interface5(4),
+                interface6(5),
+                interface7(6),
+                interface8(7)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the IP stack interfaces on which a ssh server
+         is active."
+    DEFVAL { { } }
+    ::= { sshMgmt 1 }
+
+sshUserName OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..15))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the user name which will be allowed ssh
+         access."
+    DEFVAL { "" }
+    ::= { sshMgmt 2 }
+
+sshPassword OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (0..15))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the password which will be allowed ssh
+         access."
+    DEFVAL { "" }
+    ::= { sshMgmt 3 }
+
+sshServerControl OBJECT-TYPE
+    SYNTAX      INTEGER {
+                stop(0),
+                start(1)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Used to start or stop the ssh server.  When read, indicates
+         the current state of the server."
+    ::= { sshMgmt 4 }
+
+sshSessionIp OBJECT-TYPE
+    SYNTAX      IpAddress
+    MAX-ACCESS  read-only
+    STATUS      deprecated -- in favor of sshSessionAddressType and sshSessionAddress
+    DESCRIPTION
+        "This object gives the IP address of the most recently connected device.  
+         If no session has taken place since the last reboot, this object will 
+         read 0.0.0.0."
+    ::= { sshMgmt 5 }
+    
+sshSessionInProgress OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether or not a ssh session is currently in progress."
+    ::= { sshMgmt 6 }
+
+sshForceUserLogout OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "If a ssh session is currently in progress, setting this object
+         to true(1) will terminate the session.  Setting to false(2) has
+         no effect.  Always returns false(2) when read."
+    ::= { sshMgmt 7 }
+    
+sshSessionAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for sshSessionAddress."
+    ::= { sshMgmt 8 }
+    
+sshSessionAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This object gives the address of the most recently connected device.  
+         If no session has taken place since the last reboot, this object will 
+         report an empty string."
+    ::= { sshMgmt 9 }
+    
+sshHackerTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF SshHackerEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of internet addresses which have been blacklisted from ssh
+         access on this station.  Blacklisting occurs when a login attempt
+         fails a number of times from the given address."
+    ::= { sshMgmt 10 }
+    
+sshHackerEntry OBJECT-TYPE
+    SYNTAX      SshHackerEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry representing a single blacklisted address."
+    INDEX   { sshHackerAddressType, sshHackerAddress }    
+    ::= { sshHackerTable 1 }
+    
+SshHackerEntry ::= 
+    SEQUENCE    {
+                sshHackerAddressType InetAddressType,
+                sshHackerAddress     InetAddress,
+                sshHackerNumAttempts Unsigned32,
+                sshHackerLastTime    TimeTicks
+    }
+
+sshHackerAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for sshHackerAddress."
+    ::= { sshHackerEntry 1 }
+    
+sshHackerAddress OBJECT-TYPE
+    SYNTAX      InetAddress (SIZE(0..20))
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The address of an device which has unsuccessfully attempted to log in 
+         to this station enough times to be blacklisted as a hacker."
+    ::= { sshHackerEntry 2 }
+    
+sshHackerNumAttempts OBJECT-TYPE
+    SYNTAX         Unsigned32
+    MAX-ACCESS     read-only
+    STATUS         current
+    DESCRIPTION
+        "The number of times that the device represented by this entry has
+         attempted to log in to this station."
+    ::= { sshHackerEntry 3 }
+    
+sshHackerLastTime OBJECT-TYPE
+    SYNTAX         TimeTicks
+    MAX-ACCESS     read-only
+    STATUS         current
+    DESCRIPTION
+        "The value of sysUpTime when this row was created, or when the value
+         of sshHackerNumAttempts was last incremented."
+    ::= { sshHackerEntry 4 }
+    
+sshSessionInactivityTimeout OBJECT-TYPE
+    SYNTAX      Integer32 (0..86400)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object controls the length of time after which an ssh session
+         will be terminated if there is no activity.  Note that if this object
+         is set to zero, the session will never be terminated due to 
+         inactivity."
+    DEFVAL { 0 }
+    ::= { sshMgmt 11 }
+    
+sshHackerInactivityTimeout OBJECT-TYPE
+    SYNTAX      Integer32 (-1..86400)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object controls the length of time after which an entry in the
+         sshHackerTable will be removed if there are no further attempts to
+         access the system from the corresponding sshHackerAddress. Note 
+         that if this object is set to zero, the sshHackerTable will be
+         effectively disabled and no IP addresses will be blacklisted for
+         unauthorized access.  If set to -1, entries in the sshHackerTable
+         will never be aged out and once blacklisted, only a system reboot
+         will allow another attempted login from the blacklisted address." 
+    DEFVAL { -1 }
+    ::= { sshMgmt 12 }
+
+sshWanAccessTimeout OBJECT-TYPE
+    SYNTAX      Integer32 (0..86400)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object controls the length of time after which SSH access
+         via the WAN interface will be terminated if no SSH session is
+         initiated via the WAN interface within this period.  If set to a value 
+         of 0, there will be no such timeout in effect.
+
+         The timer begins running when the SSH server starts.  After the number 
+         of seconds specified by this object has elapsed, if no SSH session
+         has been initiated via the WAN interface, a filter will be created which
+         drops all SSH traffic destined to any of the device's IP addresses 
+         which arrives via the WAN interface.
+
+         If a SSH session is initiated via the WAN interface during the 
+         period of time allotted by this object, the timer will be reset.
+
+         Setting this object to any value will cause the timer to be reset."
+    DEFVAL { 0 }
+    ::= { sshMgmt 13 }    
+
+--
+-- Notifications, aka traps.
+--
+-- Note that this MIB is rather poorly designed in that all the objects
+-- reside immediately under the MODULE-IDENTITY node, so there's no really 
+-- good node to reserve for traps.  So we'll just pick 99 which allows
+-- some room to add objects if needed.
+--
+    
+sshTraps OBJECT IDENTIFIER ::= { sshMgmt 99 }
+    
+sshHackerTrap NOTIFICATION-TYPE
+    OBJECTS { 
+              sshHackerNumAttempts,
+              sshHackerLastTime
+            }
+    STATUS current
+    DESCRIPTION
+        "An entry has been added to the sshHackerTable, indicating repeated
+         unauthorized login attempts by the device indicated."
+    ::= { sshTraps 1 }
+    
+END

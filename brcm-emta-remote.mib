@@ -1,0 +1,915 @@
+--****************************************************************************
+--
+-- Copyright (c) 2015 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-emta-remote.mib
+--    Author:   Kevin O'Neal
+--    Creation Date: February 3, 2015
+--
+--****************************************************************************
+--    Description:
+--
+--      MIB for use in multi-processor systems to provide a channel for the
+--      RG processor to access EMTA settings via the CM processor.
+--
+--****************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-EMTA-REMOTE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Integer32
+        FROM SNMPv2-SMI
+    DisplayString, MacAddress
+        FROM SNMPv2-TC
+    OBJECT-GROUP,
+    MODULE-COMPLIANCE
+        FROM SNMPv2-CONF
+    cmEmtaMgmt
+        FROM BRCM-CM-EMTA-MGMT-MIB;
+
+emtaRemote MODULE-IDENTITY
+    LAST-UPDATED "201505220000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "   BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom MIB for use in multi-processor systems to provide a channel
+         by which the remote (RG) processor may access EMTA settings on the
+         local (CM) processor.
+
+         This MIB is hosted internally on the local processor and is only
+         available to the EMTA proxy partner on the remote processor.  It is not
+         accessible to outside entities."
+    REVISION      "201505220000Z"
+    DESCRIPTION
+        "Added emtaRemoteDevMacAddress"    
+    REVISION      "201505200000Z"
+    DESCRIPTION
+        "Increased range of emtaRemoteDevConfigFileIndex to accomodate
+         PC20 configuration files."    
+    REVISION      "201505190000Z"
+    DESCRIPTION
+        "Add an additional object - emtaRemoteDevSoftwareVersion"    
+    REVISION      "201505150000Z"
+    DESCRIPTION
+        "Add an additional object - emtaRemoteDevLastCallStats"    
+    REVISION      "201505080000Z"
+    DESCRIPTION
+        "Fixed smilint errors related to commas at the end of sequences,
+         access for tables being read-only, conformance groups, etc."
+    REVISION      "201504230000Z"
+    DESCRIPTION
+        "Added additional objects for device, DECT, and endpoint information."
+    REVISION      "201502270000Z"
+    DESCRIPTION
+        "Fixed smilint errors for unused imported objects."
+    REVISION      "201502030000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+::= { cmEmtaMgmt 12161 } -- 12161 is the UDP port used for EMTA remote
+
+emtaRemoteWan OBJECT IDENTIFIER ::= { emtaRemote 1 }
+
+emtaRemoteWanProvIpAddressAndSubnet OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns the EMTA's IP address and subnet, formatted as a display string."
+    ::= { emtaRemoteWan 1 }
+
+emtaRemoteWanProvGatewayIp OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns IP address of the EMTA's gateway, formatted as a display string."
+    ::= { emtaRemoteWan 2 }
+
+emtaRemoteWanLeaseTimeRemaining OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns the amount of time remaining in the EMTA's current DHCP lease."
+    ::= { emtaRemoteWan 3 }
+
+emtaRemoteWanLeaseRebindTimeRemaining OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns the amount of time remaining before the next EMTA DHCP lease
+         rebind."
+    ::= { emtaRemoteWan 4 }
+
+emtaRemoteWanLeaseRenewTimeRemaining OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns the amount of time remaining before the next EMTA DHCP lease
+         renewal."
+    ::= { emtaRemoteWan 5 }
+
+emtaRemoteWanProvPrimaryDnsServer OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns IP address of the EMTA's primary DNS server, formatted as a
+         display string."
+    ::= { emtaRemoteWan 6 }
+
+emtaRemoteWanProvSecondaryDnsServer OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns IP address of the EMTA's secondary DNS server, formatted as a
+         display string."
+    ::= { emtaRemoteWan 7 }
+
+emtaRemoteWanProvPrimaryDhcpServer OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns IP address of the EMTA's primary DHCP server, formatted as a
+         display string."
+    ::= { emtaRemoteWan 8 }
+
+emtaRemoteWanProvSecondaryDhcpServer OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns IP address of the EMTA's secondary DHCP server, formatted as a
+         display string."
+    ::= { emtaRemoteWan 9 }
+
+emtaRemoteDev OBJECT IDENTIFIER ::= { emtaRemote 2 }
+
+emtaRemoteDevEnabled OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The device enabled state of the EMTA."
+    ::= { emtaRemoteDev 1 }
+
+emtaRemoteDevDhcpProvStatus OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The status of DHCP provisioning process of the EMTA."
+    ::= { emtaRemoteDev 2 }
+
+emtaRemoteDevTftpProvStatus OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The status of the TFTP download of EMTA configuration file."
+    ::= { emtaRemoteDev 3 }
+
+emtaRemoteDevProvResult OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The result of the EMTA provisioning process."
+    ::= { emtaRemoteDev 4 }
+
+emtaRemoteDevProvMethod OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The method or provisioning flow name used by the EMTA."
+    ::= { emtaRemoteDev 5 }
+
+emtaRemoteDevSnmpV3Established OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A string indicating if the EMTA has been provisioned for SNMPv3"
+    ::= { emtaRemoteDev 6 }
+
+emtaRemoteDevRealmOrgName OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The Realm Org Name used by the EMTA for provsioning."
+    ::= { emtaRemoteDev 7 }
+
+emtaRemoteDevCapabilities OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "The EMTA device capabilities."
+    ::= { emtaRemoteDev 8 }
+
+emtaRemoteDevTftpServer OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "The TFTP server IP address of the EMTA."
+    ::= { emtaRemoteDev 9 }
+
+emtaRemoteDevConfigFile OBJECT IDENTIFIER ::= { emtaRemoteDev 10 }
+ 
+emtaRemoteDevConfigFileName OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "The name of the EMTA configuration file."
+    ::= { emtaRemoteDevConfigFile 1 }
+
+emtaRemoteDevConfigFileContentsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EmtaRemoteDevConfigFileContentsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table containing the contents of the EMTA config file"
+    ::= { emtaRemoteDevConfigFile 2 }
+
+emtaRemoteDevConfigFileContentsEntry OBJECT-TYPE
+    SYNTAX      EmtaRemoteDevConfigFileContentsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents an entry from the EMTA configuration file."
+    INDEX  { emtaRemoteDevConfigFileIndex }
+    ::= { emtaRemoteDevConfigFileContentsTable 1 } 
+    
+EmtaRemoteDevConfigFileContentsEntry ::=
+    SEQUENCE {
+              emtaRemoteDevConfigFileIndex        Integer32,
+              emtaRemoteDevConfigFileEntry   DisplayString
+              }
+
+emtaRemoteDevConfigFileIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..300)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+    "Index of EMTA configuration file entries."
+    ::= { emtaRemoteDevConfigFileContentsEntry 1 }
+
+emtaRemoteDevConfigFileEntry OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "An entry from the EMTA configuration file."
+    ::= { emtaRemoteDevConfigFileContentsEntry 2 }
+
+emtaRemoteDevLog OBJECT IDENTIFIER ::= { emtaRemoteDev 11 }
+
+emtaRemoteDevLogEventLogTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EmtaRemoteDevLogEventLogEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of EMTA management event logs"
+    ::= { emtaRemoteDevLog 1 }
+
+emtaRemoteDevLogEventLogEntry OBJECT-TYPE
+    SYNTAX      EmtaRemoteDevLogEventLogEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents a management event log for the EMTA."
+    INDEX  { emtaRemoteDevLogEventLogIndex }
+    ::= { emtaRemoteDevLogEventLogTable 1 } 
+    
+EmtaRemoteDevLogEventLogEntry ::=
+    SEQUENCE {
+              emtaRemoteDevLogEventLogIndex        Integer32,
+              emtaRemoteDevLogEventLog    DisplayString
+              }
+
+emtaRemoteDevLogEventLogIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+    "Index of management event logs."
+    ::= { emtaRemoteDevLogEventLogEntry 1 }
+
+emtaRemoteDevLogEventLog OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "An EMTA management event log."
+    ::= { emtaRemoteDevLogEventLogEntry 2 }
+
+emtaRemoteDevLogBattLogTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EmtaRemoteDevLogBattLogEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of EMTA management battery event logs"
+    ::= { emtaRemoteDevLog 2 }
+
+emtaRemoteDevLogBattLogEntry OBJECT-TYPE
+    SYNTAX      EmtaRemoteDevLogBattLogEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents a battery event log for the EMTA."
+    INDEX  { emtaRemoteDevLogBattLogIndex }
+    ::= { emtaRemoteDevLogBattLogTable 1 } 
+    
+EmtaRemoteDevLogBattLogEntry ::=
+    SEQUENCE {
+              emtaRemoteDevLogBattLogIndex        Integer32,
+              emtaRemoteDevLogBattEventLog    DisplayString
+              }
+
+emtaRemoteDevLogBattLogIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+    "Index of battery event logs."
+    ::= { emtaRemoteDevLogBattLogEntry 1 }
+
+emtaRemoteDevLogBattEventLog OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "An EMTA battery event log."
+    ::= { emtaRemoteDevLogBattLogEntry 2 }
+
+emtaRemoteDevLogCallSigTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EmtaRemoteDevLogCallSigEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of EMTA call signalling message logs"
+    ::= { emtaRemoteDevLog 3 }
+
+emtaRemoteDevLogCallSigEntry OBJECT-TYPE
+    SYNTAX      EmtaRemoteDevLogCallSigEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents a call signalling log for the EMTA."
+    INDEX  { emtaRemoteDevLogCallSigIndex }
+    ::= { emtaRemoteDevLogCallSigTable 1 } 
+    
+EmtaRemoteDevLogCallSigEntry ::=
+    SEQUENCE {
+              emtaRemoteDevLogCallSigIndex        Integer32,
+              emtaRemoteDevLogCallSigLog          DisplayString
+              }
+
+emtaRemoteDevLogCallSigIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+    "Index of call signalling logs."
+    ::= { emtaRemoteDevLogCallSigEntry 1 }
+
+emtaRemoteDevLogCallSigLog OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "An EMTA call signalling log."
+    ::= { emtaRemoteDevLogCallSigEntry 2 }
+
+emtaRemoteDevLogErrorTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EmtaRemoteDevLogErrorEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of EMTA configuration file errors."
+    ::= { emtaRemoteDevLog 4 }
+
+emtaRemoteDevLogErrorEntry OBJECT-TYPE
+    SYNTAX      EmtaRemoteDevLogErrorEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents an error from the EMTA configuration file."
+    INDEX  { emtaRemoteDevLogErrorIndex }
+    ::= { emtaRemoteDevLogErrorTable 1 } 
+    
+EmtaRemoteDevLogErrorEntry ::=
+    SEQUENCE {
+              emtaRemoteDevLogErrorIndex        Integer32,
+              emtaRemoteDevLogErrorLog          DisplayString
+              }
+
+emtaRemoteDevLogErrorIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..100)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+    "Index of configuration file error logs."
+    ::= { emtaRemoteDevLogErrorEntry 1 }
+
+emtaRemoteDevLogErrorLog OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "An EMTA configuration file error logs."
+    ::= { emtaRemoteDevLogErrorEntry 2 }
+
+emtaRemoteDevLastCallStats OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Print the last call stats to the console, always returns empty string"
+    ::= { emtaRemoteDev 12 }
+
+emtaRemoteDevSoftwareVersion OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The software version of the EMTA."
+    ::= { emtaRemoteDev 13 }
+
+emtaRemoteDevMacAddress OBJECT-TYPE
+    SYNTAX      MacAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The MAC Address of the EMTA."
+    ::= { emtaRemoteDev 14 }
+
+emtaRemoteDect OBJECT IDENTIFIER ::= { emtaRemote 3 }
+
+emtaRemoteDectVersion OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The DECT software version number."
+    ::= { emtaRemoteDect 1 }
+
+emtaRemoteLine OBJECT IDENTIFIER ::= { emtaRemote 4 }
+
+emtaRemoteLineTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EmtaRemoteLineEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of EMTA endpoint/line settings and information"
+    ::= { emtaRemoteLine 1 }
+
+emtaRemoteLineEntry OBJECT-TYPE
+    SYNTAX      EmtaRemoteLineEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents the information for an endpoint/line on the
+         EMTA."
+    INDEX  { emtaRemoteLineIndex }
+    ::= { emtaRemoteLineTable 1 } 
+    
+EmtaRemoteLineEntry ::=
+    SEQUENCE {
+              emtaRemoteLineIndex        Integer32,
+              emtaRemoteLineRegStatus    DisplayString,
+              emtaRemoteLineRegExpiry    DisplayString,
+              emtaRemoteLineReRegTime    DisplayString,
+              emtaRemoteLineName         DisplayString,
+              emtaRemoteLineAdminStat    DisplayString,
+              emtaRemoteLineOperStat     DisplayString,
+              emtaRemoteLineCmsFqdn      DisplayString,
+              emtaRemoteLineCmsIpAddr    DisplayString,
+              emtaRemoteLineIpsecFlag    DisplayString,
+              emtaRemoteLineHookState    DisplayString,
+              emtaRemoteLineRtpHdrSupp   DisplayString,
+              emtaRemoteLineActiveConnections     DisplayString,
+              emtaRemoteLineRSIPStatus   DisplayString,
+              emtaRemoteLineEventQueue   DisplayString,
+              emtaRemoteLineRequestedEvents DisplayString,
+              emtaRemoteLineCmsUdpPort   DisplayString
+              }
+
+emtaRemoteLineIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..32)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+    "The EMTA line number.  Starting with 1."
+    ::= { emtaRemoteLineEntry 1 }
+
+emtaRemoteLineRegStatus OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Registration status of the line or user."
+    ::= { emtaRemoteLineEntry 2 }
+
+emtaRemoteLineRegExpiry OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Registration expiry time of the line or user."
+    ::= { emtaRemoteLineEntry 3 }
+
+emtaRemoteLineReRegTime OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Time until next Re-Registration attempt of the line or user."
+    ::= { emtaRemoteLineEntry 4 }
+
+emtaRemoteLineName OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Name of the line or user."
+    ::= { emtaRemoteLineEntry 5 }
+
+emtaRemoteLineAdminStat OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Admin state or desired state of the line or user"
+    ::= { emtaRemoteLineEntry 6 }
+
+emtaRemoteLineOperStat OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Operational state of the line or user"
+    ::= { emtaRemoteLineEntry 7 }
+
+emtaRemoteLineCmsFqdn OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "For an NCS EMTA, the FQDN of the CMS for the line.
+     For SIP EMTAs, an empty string is returned."
+    ::= { emtaRemoteLineEntry 8 }
+
+emtaRemoteLineCmsIpAddr OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "For an NCS EMTA, the ip address of the CMS for the line.
+     For SIP EMTAs, an empty string is returned."
+    ::= { emtaRemoteLineEntry 9 }
+
+emtaRemoteLineIpsecFlag OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Indication of IPSEC signalling support for the line or user."
+    ::= { emtaRemoteLineEntry 10 }
+
+emtaRemoteLineHookState OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Hook state of the EMTA line."
+    ::= { emtaRemoteLineEntry 11 }
+
+emtaRemoteLineRtpHdrSupp OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Indication of RTP Header Suppression"
+    ::= { emtaRemoteLineEntry 12 }
+
+emtaRemoteLineActiveConnections OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Number of Active Connections."
+    ::= { emtaRemoteLineEntry 13 }
+
+emtaRemoteLineRSIPStatus OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "RSIP status of the line"
+    ::= { emtaRemoteLineEntry 14 }
+
+emtaRemoteLineEventQueue OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Event queue for the line."
+    ::= { emtaRemoteLineEntry 15 }
+
+emtaRemoteLineRequestedEvents OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Requested Events for the line."
+    ::= { emtaRemoteLineEntry 16 }
+
+emtaRemoteLineCmsUdpPort OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Udp port of the CMS for the line."
+    ::= { emtaRemoteLineEntry 17 }
+
+
+emtaRemoteLineCallStatsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF EmtaRemoteLineCallStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table of EMTA endpoint/line call stats"
+    ::= { emtaRemoteLine 2 }
+
+emtaRemoteLineCallStatsEntry OBJECT-TYPE
+    SYNTAX      EmtaRemoteLineCallStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry represents the information for an endpoint/line on the
+         EMTA."
+    INDEX  { emtaRemoteLineCallStatsIndex }
+    ::= { emtaRemoteLineCallStatsTable 1 } 
+    
+EmtaRemoteLineCallStatsEntry ::=
+    SEQUENCE {
+              emtaRemoteLineCallStatsIndex        Integer32,
+              emtaRemoteLineCallStatsPktsSentLoc  Integer32,
+              emtaRemoteLineCallStatsPktsSentRem  Integer32,
+              emtaRemoteLineCallStatsPktsRecLoc   Integer32,
+              emtaRemoteLineCallStatsPktsRecRem   Integer32,
+              emtaRemoteLineCallStatsPktsLossLoc  Integer32,
+              emtaRemoteLineCallStatsPktsLossRem  Integer32,
+              emtaRemoteLineCallStatsLatencyLoc   Integer32,
+              emtaRemoteLineCallStatsLatencyRem   Integer32,
+              emtaRemoteLineCallStatsJitterLoc    Integer32,
+              emtaRemoteLineCallStatsJitterRem    Integer32
+             }
+
+emtaRemoteLineCallStatsIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..32)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+    "The EMTA line number.  Starting with 1."
+    ::= { emtaRemoteLineCallStatsEntry 1 }
+
+emtaRemoteLineCallStatsPktsSentLoc OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Local packets sent."
+    ::= { emtaRemoteLineCallStatsEntry 2 }
+
+emtaRemoteLineCallStatsPktsSentRem OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Remote Packets sent."
+    ::= { emtaRemoteLineCallStatsEntry 3 }
+
+emtaRemoteLineCallStatsPktsRecLoc OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Local packets received."
+    ::= { emtaRemoteLineCallStatsEntry 4 }
+
+emtaRemoteLineCallStatsPktsRecRem OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Remote packets received."
+    ::= { emtaRemoteLineCallStatsEntry 5 }
+
+emtaRemoteLineCallStatsPktsLossLoc OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Local packet loss."
+    ::= { emtaRemoteLineCallStatsEntry 6 }
+
+emtaRemoteLineCallStatsPktsLossRem OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Remote packet loss."
+    ::= { emtaRemoteLineCallStatsEntry 7 }
+
+emtaRemoteLineCallStatsLatencyLoc OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Local packet latency."
+    ::= { emtaRemoteLineCallStatsEntry 8 }
+
+emtaRemoteLineCallStatsLatencyRem OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Remote packet latency."
+    ::= { emtaRemoteLineCallStatsEntry 9 }
+
+emtaRemoteLineCallStatsJitterLoc OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Local Jitter."
+    ::= { emtaRemoteLineCallStatsEntry 10 }
+
+emtaRemoteLineCallStatsJitterRem OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+    "Remote Jitter."
+    ::= { emtaRemoteLineCallStatsEntry 11 }
+
+-- The following node must be the last one in this MIB. All new
+-- MIB Objects should be introduced in one of the above categories,
+-- e.g. - in 'emtaRemoteWan'.
+emtaRemoteConformance      OBJECT IDENTIFIER ::= { emtaRemote 5 }
+
+--
+-- Compliance Statements
+--
+emtaRemoteCompliances  OBJECT IDENTIFIER ::= { emtaRemoteConformance 1 }
+emtaRemoteGroups       OBJECT IDENTIFIER ::= { emtaRemoteConformance 2 }
+
+emtaRemoteCompliance  MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "This compliance statement applies to multi-processor implementations
+        that support Broadcom EMTA Proprietary MIB requirements.
+        It is left to manufacturers to determine whether to support
+        this MIB and/or its subset depending on the particular
+        requirements in the field."
+
+    MODULE
+    MANDATORY-GROUPS {
+               emtaRemoteGroup
+    }
+    ::= { emtaRemoteCompliances 1 }
+
+emtaRemoteGroup OBJECT-GROUP
+    OBJECTS {
+            emtaRemoteWanProvIpAddressAndSubnet,
+            emtaRemoteWanProvGatewayIp,
+            emtaRemoteWanLeaseTimeRemaining,
+            emtaRemoteWanLeaseRebindTimeRemaining,
+            emtaRemoteWanLeaseRenewTimeRemaining,
+            emtaRemoteWanProvPrimaryDnsServer,
+            emtaRemoteWanProvSecondaryDnsServer,
+            emtaRemoteWanProvPrimaryDhcpServer,
+            emtaRemoteWanProvSecondaryDhcpServer,
+            emtaRemoteDevEnabled,
+            emtaRemoteDevDhcpProvStatus,
+            emtaRemoteDevTftpProvStatus,
+            emtaRemoteDevProvResult,
+            emtaRemoteDevProvMethod,
+            emtaRemoteDevSnmpV3Established,
+            emtaRemoteDevRealmOrgName,
+            emtaRemoteDevCapabilities,
+            emtaRemoteDevTftpServer,
+
+            emtaRemoteDevConfigFileName,
+            emtaRemoteDevConfigFileEntry,
+            emtaRemoteDevLogEventLog,
+            emtaRemoteDevLogBattEventLog,
+            emtaRemoteDevLogCallSigLog,
+            emtaRemoteDevLogErrorLog,
+            emtaRemoteDevLastCallStats,
+            emtaRemoteDevSoftwareVersion,
+            emtaRemoteDevMacAddress,
+            emtaRemoteDectVersion,
+            emtaRemoteLineRegStatus,
+            emtaRemoteLineRegExpiry,
+            emtaRemoteLineReRegTime,
+            emtaRemoteLineName,
+            emtaRemoteLineAdminStat,
+            emtaRemoteLineOperStat,
+            emtaRemoteLineCmsFqdn,
+            emtaRemoteLineCmsIpAddr,
+            emtaRemoteLineIpsecFlag,
+            emtaRemoteLineHookState,
+            emtaRemoteLineRtpHdrSupp,
+            emtaRemoteLineActiveConnections,
+            emtaRemoteLineRSIPStatus,
+            emtaRemoteLineEventQueue,
+            emtaRemoteLineRequestedEvents,
+            emtaRemoteLineCmsUdpPort,
+            emtaRemoteLineCallStatsPktsSentLoc,
+            emtaRemoteLineCallStatsPktsSentRem,
+            emtaRemoteLineCallStatsPktsRecLoc,
+            emtaRemoteLineCallStatsPktsRecRem,
+            emtaRemoteLineCallStatsPktsLossLoc,
+            emtaRemoteLineCallStatsPktsLossRem,
+            emtaRemoteLineCallStatsLatencyLoc,
+            emtaRemoteLineCallStatsLatencyRem,
+            emtaRemoteLineCallStatsJitterLoc,
+            emtaRemoteLineCallStatsJitterRem
+    }
+    STATUS      current
+    DESCRIPTION
+        "This group defines a collection of the MIB objects to meet the customers
+        requirements for remote access of MTA information and functionality."
+    ::= { emtaRemoteGroups 1 }
+
+END

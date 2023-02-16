@@ -1,0 +1,139 @@
+--****************************************************************************
+--
+-- Copyright (c) 2004-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--                                                                      
+--**************************************************************************
+--    Filename: brcm-cm-products.mib
+--    Author:   Kevin O'Neal
+--    Creation Date: 11-feb-2004
+--
+--**************************************************************************
+--    Description:
+--
+--		private MIB defining all CM product IDs.
+--              Note that this MIB does not define any accessible objects
+--              and is provided strictly for use in sysObjectID.
+--		
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-CM-PRODUCTS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY
+        FROM SNMPv2-SMI
+    cableDataProducts 
+        FROM BRCM-CABLEDATA-SMI;
+
+brcmCmProducts MODULE-IDENTITY
+    LAST-UPDATED "201406160000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "	BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB which identifies the product IDs for various
+         cablemodem reference designs. These object identifiers are the
+         default values returned for sysObjectID in the unmodified reference
+         design software."
+    REVISION      "201406160000Z"
+    DESCRIPTION
+        "Added object identifier for 3385."
+    REVISION      "201303210000Z"
+    DESCRIPTION
+        "Added object identifiers for 33843 and 3384."
+    REVISION      "201109220000Z"
+    DESCRIPTION
+        "Added object identifiers for 3378, 3379, 3382, 3383."
+    REVISION      "200702050000Z"
+    DESCRIPTION
+        "Module description was updated."
+    REVISION      "200402110000Z"
+    DESCRIPTION
+            "Initial version of this MIB module."
+    ::= { cableDataProducts 2 }
+    
+--
+-- Product IDs for Broadcom DOCSIS cablemodem reference designs.
+-- We use the convention of brcmCmProducts.chip for our reference design
+-- sysObjectID values. This is obviously not a solution which extends to
+-- real-world products since there could well be many products based on a
+-- given chipset. However, for our internal purposes it is sufficient.
+-- New products will be added to this list as new chipsets become available.
+-- 
+
+-- cmReferenceDesigns = 1.3.6.1.4.1.4413.2.1.2.1
+cmReferenceDesigns OBJECT IDENTIFIER ::= { brcmCmProducts 1 }
+
+bcm93220  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3220 }
+bcm93300  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3300 }
+bcm93345  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3345 }
+bcm93348  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3348 }
+bcm93349  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3349 }
+bcm93350  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3350 }
+bcm93351  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3351 }
+bcm93352  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3352 }
+bcm93360  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3360 }
+bcm93367  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3367 }
+bcm93368  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3368 }
+bcm93378  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3378 }
+bcm93379  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3379 }
+bcm93380  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3380 }
+bcm93381  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3381 }
+bcm93382  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3382 }
+bcm93383  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3383 }
+bcm933843 OBJECT IDENTIFIER ::= { cmReferenceDesigns 3843 }
+bcm93384  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3384 }
+bcm93385  OBJECT IDENTIFIER ::= { cmReferenceDesigns 3385 }
+
+END

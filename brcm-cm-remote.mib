@@ -1,0 +1,857 @@
+--****************************************************************************
+--
+-- Copyright (c) 2015 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-cm-remote.mib
+--    Author:   Chris Zacker
+--    Creation Date: Jan 7 2015
+--
+--**************************************************************************
+--    Description:
+--
+--    MIB for runtime management of BFC CM HAL management features
+--
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-CM-REMOTE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Unsigned32,
+    Integer32
+        FROM SNMPv2-SMI
+    TruthValue,
+    DisplayString,
+    PhysAddress
+        FROM SNMPv2-TC
+    MODULE-COMPLIANCE,
+    OBJECT-GROUP
+        FROM SNMPv2-CONF
+    InetAddress,
+    InetAddressType
+        FROM INET-ADDRESS-MIB
+    InterfaceIndex,
+    InterfaceIndexOrZero
+            FROM IF-MIB
+    cablemodemMgmt
+        FROM BRCM-CM-MGMT-MIB;
+
+cmRemote MODULE-IDENTITY
+    LAST-UPDATED "201508100000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "   BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Addition of new table to support WEB UI, cmRemoteEventTable."
+    REVISION      "201508100000Z"
+    DESCRIPTION
+        "Added new table cmRemoteMacAddressTable."
+    REVISION      "201506180000Z"
+DESCRIPTION
+        "Addition of new object to support WEB UI. Added cmRemotePhsStatus."
+    REVISION      "201506120000Z"
+    DESCRIPTION
+        "Addition of new object to support WEB UI. Added cmRemoteBpiPlusCertificatePresent."
+    REVISION      "201505270000Z"
+    DESCRIPTION
+        "Addition of new object to support WEB UI. Added cmRemoteNumberOfCPEs."
+    REVISION      "201505220000Z"
+    DESCRIPTION
+        "Addition of new objects to support standard traps in multi-processor
+        designs like Turbo WiFi, RDK-B, 3385, and 3390.  When the link state transitions
+        the RG will send an SNMP set to the new MIB object, and then CM will send the trap."
+    REVISION      "201505120000Z"
+    DESCRIPTION
+        "Fixed smilint errors in conformance statement and comments as well as some spelling issues."
+    REVISION      "201504270000Z"
+    DESCRIPTION
+        "Addition of new objects to support WEB UI. Added cmRemoteDocsisUpstreamGroup,
+        cmRemoteTimeOffset and cmRemoteTimeOffset, cmRemoteDocDevEventLogResetNow,
+        cmRemoteConfigFileContents, cmRemoteBoardTemperature and cmRemoteInterfaces."
+    REVISION      "201504220000Z"
+    DESCRIPTION
+        "Broadcom MIB for use in multi-processor systems to provide a channel
+         by which the remote (RG) processor may access CM settings on the
+         local (CM) processor.
+
+         This MIB is hosted internally on the local processor and is only
+         available to the CM proxy partner on the remote processor.  It is not
+         accessible to outside entities."
+    REVISION      "201503240000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cablemodemMgmt 12161 } -- 12161 is used in the emta remote mib so why not here?
+
+--
+-- Textual Conventions
+--
+
+--
+-- Object Definitions
+--
+
+cmRemoteNotifications OBJECT IDENTIFIER ::= { cmRemote 0 }
+
+cmRemoteMIBObjects OBJECT IDENTIFIER ::= { cmRemote 1 }
+
+cmRemoteConformance OBJECT IDENTIFIER ::= { cmRemote 2 }
+
+--
+-- MIB objects
+--
+
+cmRemoteBase OBJECT IDENTIFIER ::= { cmRemoteMIBObjects 1 }
+
+cmRemoteBuildTargetLocation OBJECT-TYPE
+   SYNTAX      DisplayString (SIZE (0..32))
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "A textual string containing information about the
+           build and what location it has been built for."
+    ::= { cmRemoteBase 1 }
+
+cmRemoteTftpConfigFileAttempts OBJECT-TYPE
+   SYNTAX      Unsigned32
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "Number of attempts it took to read the configuration file."
+    ::= { cmRemoteBase 2 }
+
+cmRemoteTimeOfDay OBJECT-TYPE
+   SYNTAX      DisplayString (SIZE (0..64))
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "Time of Day value of the CM."
+    ::= { cmRemoteBase 3 }
+
+cmRemoteMaxCPEs OBJECT-TYPE
+   SYNTAX      Unsigned32
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "Maximum number of CPEs that the CM is configured for."
+    ::= { cmRemoteBase 4 }
+
+cmRemoteNetworkAccessControl OBJECT-TYPE
+   SYNTAX      TruthValue
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "Netowrk Access Control Value from DOCSIS configuration value."
+    ::= { cmRemoteBase 5 }
+
+cmRemotePrimaryChannelFrequency OBJECT-TYPE
+   SYNTAX      Unsigned32
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "Returns the primary downstream channel center frequency."
+    ::= { cmRemoteBase 6 }
+
+cmRemoteScanTargetFrequency OBJECT-TYPE
+   SYNTAX      Unsigned32
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION
+           "Set a last known good downstream frequency used for scanning."
+    ::= { cmRemoteBase 7 }
+
+cmRemoteTargetChannelId OBJECT-TYPE
+     SYNTAX      Integer32 (0..255)
+     MAX-ACCESS  read-write
+     STATUS      current
+     DESCRIPTION
+         "The CMTS identification of the target upstream channel."
+     ::= { cmRemoteBase 8 }
+
+cmRemoteDocDevEventLogResetNow OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Setting this object to true(1) causes the DOCSIS event log to be
+         cleared of all entries.  Reading this object always returns false(2)."
+    ::= { cmRemoteBase 9 }
+
+cmRemoteConfigFileContents OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (0..4096))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Returns the contents of the CM's config file, unformatted in raw
+         octets. Before registration, this object returns an empty string."
+    ::= { cmRemoteBase 10 }
+
+cmRemoteBoardTemperature OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "tenths of a degree C"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The current temperature of the board in tenths of a degree. If
+         there is no temperature measurement capability, then this value
+         is always -99."
+    ::= { cmRemoteBase 11 }
+
+cmRemoteStandardTrap OBJECT-TYPE
+   SYNTAX      DisplayString (SIZE (0..255))
+   MAX-ACCESS  read-write
+   STATUS      current
+   DESCRIPTION
+           "A textual string containing information about standard trap information.
+           When read, this object returns an empty string.
+           For example:
+            3|1 where 3 indicates TrapType and 1 indicates IfIndex."
+    ::= {  cmRemoteBase 12}
+
+cmRemoteNumberOfCPEs OBJECT-TYPE
+   SYNTAX      Unsigned32
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "A count of the number entries in the Cm SnmpAgent's dot1dTpFdbTable
+           that have dot1dTpFdbStatus  learned(3) or mgmt(5)."
+    ::= { cmRemoteBase 13 }
+
+cmRemoteBpiPlusCertificatePresent OBJECT-TYPE
+   SYNTAX      TruthValue
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "An indicator for the presence of the Cm's BPIplus certificate. this
+           object is true(1) if the certficate is present and false(2) if not."
+    ::= { cmRemoteBase 14 }
+
+cmRemotePhsStatus OBJECT-TYPE
+   SYNTAX      TruthValue
+   MAX-ACCESS  read-only
+   STATUS      current
+   DESCRIPTION
+           "An indicator for the status of PHS. this object is true(1) if the PHS is enabled and false(2) if not."
+    ::= { cmRemoteBase 15 }
+
+cmRemoteProvisioningIpv4 OBJECT IDENTIFIER ::= { cmRemoteMIBObjects 2 }
+
+cmRemoteIpAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv4 address type assigned on the CM stack."
+    DEFVAL { ipv4 }
+    ::= { cmRemoteProvisioningIpv4 1 }
+
+cmRemoteIpAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv4 address assigned by the cable operator's address."
+    ::= { cmRemoteProvisioningIpv4 2 }
+
+cmRemoteIpSubnetMaskType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv4 subnet mask address type assigned on the CM."
+    DEFVAL { ipv4 }
+    ::= { cmRemoteProvisioningIpv4 3 }
+
+cmRemoteIpSubnetMask OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv4 subnet mask address assigned on the CM."
+    ::= { cmRemoteProvisioningIpv4 4 }
+
+cmRemoteIpRouterType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv4 Router address type assigned on the CM side."
+    DEFVAL { ipv4 }
+    ::= { cmRemoteProvisioningIpv4 5 }
+
+cmRemoteIpRouter OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv4 Router address assigned on the CM side."
+    ::= { cmRemoteProvisioningIpv4 6 }
+
+cmRemoteLeaseTime OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "IPv4 lease time that the CM was given."
+    ::= { cmRemoteProvisioningIpv4 7 }
+
+cmRemoteLeaseTimeRemaining OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Time remaining on Lease."
+    ::= { cmRemoteProvisioningIpv4 8 }
+
+cmRemoteRenewTimeRemaining OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Time remaining before DHCPv4 renewing occurs on the CM IPv4 address lease."
+    ::= { cmRemoteProvisioningIpv4 9 }
+
+cmRemoteRebindTimeRemaining OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Time remaining before DHCPv4 rebinding occurs on the CM IPv4 address lease."
+    ::= { cmRemoteProvisioningIpv4 10 }
+
+cmRemoteTimeOffset OBJECT-TYPE
+    SYNTAX Integer32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Time offset used by DHCPv4 for the CM IPv4 address lease."
+    ::= { cmRemoteProvisioningIpv4 11 }
+
+cmRemoteProvisioningIpv6 OBJECT IDENTIFIER ::= { cmRemoteMIBObjects 3 }
+
+cmRemoteIpv6AddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv6 address type assigned on the CM stack."
+    DEFVAL { ipv6 }
+    ::= { cmRemoteProvisioningIpv6 1 }
+
+cmRemoteIpv6Address OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv6 address assigned on the CM stack."
+    ::= { cmRemoteProvisioningIpv6 2 }
+
+cmRemoteIpv6RouterType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv6 Router address type assigned on the CM side."
+    DEFVAL { ipv6 }
+    ::= { cmRemoteProvisioningIpv6 3 }
+
+cmRemoteIpv6Router OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The IPv6 Router address type assigned on the CM side."
+    ::= { cmRemoteProvisioningIpv6 4 }
+
+cmRemoteValidIpv6Lifetime OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "IPv6 valid lifetime that the CM received for this IPv6 address."
+    ::= { cmRemoteProvisioningIpv6 5 }
+
+cmRemotePreferredIpv6Lifetime OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "IPv6 preferred lifetime that the CM received for this IPv6 address."
+    ::= { cmRemoteProvisioningIpv6 6 }
+
+cmRemoteRenewTimeIpv6Remaining OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Time remaining before DHCPv6 renew occurs on the CM IPv6 address lease."
+    ::= { cmRemoteProvisioningIpv6 7 }
+
+cmRemoteRebindTimeIpv6Remaining OBJECT-TYPE
+    SYNTAX Unsigned32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "Time remaining before DHCPv6 rebinding occurs on the CM IPv6 address lease."
+    ::= { cmRemoteProvisioningIpv6 8 }
+
+cmRemoteTimeOffsetIpv6 OBJECT-TYPE
+    SYNTAX Integer32
+    UNITS "seconds"
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The time offset used by DHCPv6 for the CM IPv6 address lease."
+    ::= { cmRemoteProvisioningIpv6 9 }
+
+cmRemoteDocsisUpstream OBJECT IDENTIFIER ::= { cmRemoteMIBObjects 4 }
+
+cmRemoteUsPrimarySid OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The primary SID on the DOCSIS upstream."
+    ::= { cmRemoteDocsisUpstream 1 }
+
+cmRemoteUsSymbolRate OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS "Ksymbols per second"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The DOCSIS upstream symbol rate."
+    ::= { cmRemoteDocsisUpstream 2 }
+
+cmRemoteUsQAMModulation OBJECT-TYPE
+    SYNTAX      INTEGER {
+                         unknown (1),
+                         qpsk (2),
+                         qam2 (3),
+                         qam8 (4),
+                         qam16 (5),
+                         qam32 (6),
+                         qam64 (7),
+                         qam128 (8),
+                         qam256 (9),
+                         qam512 (10)
+                        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The DOCSIS upstream modulation."
+    ::= { cmRemoteDocsisUpstream 3 }
+
+cmRemoteInterfaces OBJECT IDENTIFIER ::= { cmRemoteMIBObjects 5 }
+
+cmRemoteIfTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF CmRemoteIfTableEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION "A mapping of ifTable entries to next indexes.
+                 There will be one row in this table for each
+                 ifTable entry for which the CM wishes to expose
+                 the index of the next entry."
+    ::= { cmRemoteInterfaces 1 }
+
+cmRemoteIfTableEntry OBJECT-TYPE
+    SYNTAX     CmRemoteIfTableEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION "The next index mapping for a particular
+                 ifTable entry."
+    INDEX       { cmRemoteIfTableIndex }
+    ::= { cmRemoteIfTable 1 }
+
+CmRemoteIfTableEntry ::=
+    SEQUENCE {
+        cmRemoteIfTableIndex                  InterfaceIndex,
+        cmRemoteIfTableNextIfIndex            InterfaceIndexOrZero,
+        cmRemoteIfTablePrimaryIpAddressType   InetAddressType,
+        cmRemoteIfTablePrimaryIpAddress       InetAddress,
+        cmRemoteIfTablePrimaryIpSubnetType    InetAddressType,
+        cmRemoteIfTablePrimaryIpSubnet        InetAddress
+    }
+
+cmRemoteIfTableIndex OBJECT-TYPE
+    SYNTAX   InterfaceIndex
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An index value that uniquely identifies an entry in
+                 the ifTable."
+    ::= { cmRemoteIfTableEntry 1 }
+
+cmRemoteIfTableNextIfIndex OBJECT-TYPE
+    SYNTAX   InterfaceIndexOrZero
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "This object takes as its value the index of the next ifTable entry
+             after the entry that is index by the same index as this entry.
+             For example, cmRemoteIfTableNextIfIndex.1 has the value 2.
+
+             If the index of this entry is the same as the index of the last
+             entry in the ifTable, then this object takes the value 0."
+    ::= { cmRemoteIfTableEntry 2 }
+
+cmRemoteIfTablePrimaryIpAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The primary IP address of this interface."
+    ::= { cmRemoteIfTableEntry 3 }
+
+cmRemoteIfTablePrimaryIpAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The primary IP address of this interface."
+    ::= { cmRemoteIfTableEntry 4 }
+
+cmRemoteIfTablePrimaryIpSubnetType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The subnet of the primary IP address of this interface."
+    ::= { cmRemoteIfTableEntry 5 }
+
+cmRemoteIfTablePrimaryIpSubnet OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The subnet of the primary IP address of this interface."
+    ::= { cmRemoteIfTableEntry 6 }
+
+cmRemoteEvents OBJECT IDENTIFIER ::= { cmRemoteMIBObjects 6 }
+
+cmRemoteEventTable OBJECT-TYPE
+    SYNTAX     SEQUENCE OF CmRemoteEventTableEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION "A mapping of ifTable entries to next indexes.
+                 There will be one row in this table for each
+                 ifTable entry for which the CM wishes to expose
+                 the index of the next entry."
+    ::= { cmRemoteEvents 1 }
+
+cmRemoteEventTableEntry OBJECT-TYPE
+    SYNTAX     CmRemoteEventTableEntry
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION "The next index mapping for a particular
+                 ifTable entry."
+    INDEX       { cmRemoteEventTableIndex }
+    ::= { cmRemoteEventTable 1 }
+
+CmRemoteEventTableEntry ::=
+    SEQUENCE {
+        cmRemoteEventTableIndex                  Integer32,
+        cmRemoteEventTableNextIndex              Integer32
+    }
+
+cmRemoteEventTableIndex OBJECT-TYPE
+    SYNTAX   Integer32 (1..2147483647)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION "An index value that uniquely identifies an entry in
+                 the ifTable."
+    ::= { cmRemoteEventTableEntry 1 }
+
+cmRemoteEventTableNextIndex OBJECT-TYPE
+    SYNTAX   Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "This object takes as its value the index of the next 
+             docsDevEventTable entry after the entry that is index 
+             by the same index as this entry. For example, 
+             cmRemoteEventTableNextIndex.1 probably has the value 2.
+
+             If the index of this entry is the same as the index of 
+             the last entry in the docsDevEventTable, then this object 
+             takes the value 0."
+    ::= { cmRemoteEventTableEntry 2 }
+
+--
+-- This node contains objects which are usually available under the 
+-- cableDataPrivate node (eg factory NV settings).  These may be needed for
+-- certain scenarios, eg SW upgrades etc.
+--
+
+cmRemoteFactory OBJECT IDENTIFIER ::= { cmRemoteMIBObjects 99 }
+
+cmRemoteFactoryBase OBJECT IDENTIFIER ::= { cmRemoteFactory 1 }
+
+cmRemoteMacAddressTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF CmRemoteMacAddressEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of MAC addresses used by this device.  MAC addresses in this
+         table may be internal to the device or external, meaning they are
+         assigned by the device to an externally attached peripheral.
+
+         This table differs from the cdFactMacAddressTable in that it contains
+         MAC addresses stored in CM non-volatile storage and is not proxied
+         to incorporate MAC addresses from the remote entity.  Thus the remote
+         entity may use this table to provision its own MAC addresses from the
+         CM in an upgrade scenario."
+    ::= { cmRemoteFactoryBase 1 }
+    
+cmRemoteMacAddressEntry OBJECT-TYPE
+    SYNTAX      CmRemoteMacAddressEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry defining a single MAC address for this device."
+    INDEX   { cmRemoteMacAddrIndex }
+    ::= { cmRemoteMacAddressTable 1 }
+    
+CmRemoteMacAddressEntry ::= 
+    SEQUENCE    {
+                cmRemoteMacAddrIndex         Integer32,
+                cmRemoteMacAddress           PhysAddress,
+                cmRemoteMacAddrType          INTEGER,
+                cmRemoteMacAddrDescr         DisplayString
+    }
+    
+cmRemoteMacAddrIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..64)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Identifies the instance of this MAC address."
+    ::= { cmRemoteMacAddressEntry 1 }
+    
+cmRemoteMacAddress  OBJECT-TYPE
+    SYNTAX      PhysAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The value of this serial number."
+    ::= { cmRemoteMacAddressEntry 2 }
+    
+cmRemoteMacAddrType OBJECT-TYPE
+    SYNTAX      INTEGER {
+                internal(1),
+                external(2)
+    }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Specifies the use of this MAC address.  A value of internal(1) 
+         indicates that this MAC address is used internally by this device.  A
+         value of external(2) indicates that this device maintains this MAC
+         address, but rather than using it internally, it is assigned to an
+         attached peripheral."
+    ::= { cmRemoteMacAddressEntry 3 }
+    
+cmRemoteMacAddrDescr  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A textual description of what this MAC address is used for."
+    ::= { cmRemoteMacAddressEntry 4 }
+
+--
+-- Conformance definitions
+--
+
+--
+-- Compliance Statements
+--
+
+cmRemoteCompliances  OBJECT IDENTIFIER ::= { cmRemoteConformance 1 }
+
+cmRemoteGroups       OBJECT IDENTIFIER ::= { cmRemoteConformance 2 }
+
+cmRemoteCompliance  MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "The compliance statement for devices which support the cm management
+         feature."
+    MODULE
+    MANDATORY-GROUPS {
+               cmRemoteBaseGroup,
+               cmRemoteProvisioningIpv4Group,
+               cmRemoteProvisioningIpv6Group,
+               cmRemoteDocsisUpstreamGroup,
+               cmRemoteInterfaceGroup,
+               cmRemoteEventGroup,
+               cmRemoteFactoryGroup
+    }
+    ::= { cmRemoteCompliances 1 }
+
+cmRemoteBaseGroup OBJECT-GROUP
+    OBJECTS {
+        cmRemoteBuildTargetLocation,
+        cmRemoteTftpConfigFileAttempts,
+        cmRemoteTimeOfDay,
+        cmRemoteMaxCPEs,
+        cmRemoteNetworkAccessControl,
+        cmRemotePrimaryChannelFrequency,
+        cmRemoteScanTargetFrequency,
+        cmRemoteTargetChannelId,
+        cmRemoteDocDevEventLogResetNow,
+        cmRemoteConfigFileContents,
+        cmRemoteBoardTemperature,
+        cmRemoteStandardTrap,
+        cmRemoteNumberOfCPEs,
+        cmRemoteBpiPlusCertificatePresent,
+        cmRemotePhsStatus
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { cmRemoteGroups 1 }
+
+cmRemoteProvisioningIpv4Group OBJECT-GROUP
+    OBJECTS {
+        cmRemoteIpAddressType,
+        cmRemoteIpAddress,
+        cmRemoteIpSubnetMaskType,
+        cmRemoteIpSubnetMask,
+        cmRemoteIpRouterType,
+        cmRemoteIpRouter,
+        cmRemoteLeaseTime,
+        cmRemoteLeaseTimeRemaining,
+        cmRemoteRenewTimeRemaining,
+        cmRemoteRebindTimeRemaining,
+        cmRemoteTimeOffset
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { cmRemoteGroups 2 }
+
+cmRemoteProvisioningIpv6Group OBJECT-GROUP
+    OBJECTS {
+        cmRemoteIpv6AddressType,
+        cmRemoteIpv6Address,
+        cmRemoteIpv6RouterType,
+        cmRemoteIpv6Router,
+        cmRemoteValidIpv6Lifetime,
+        cmRemotePreferredIpv6Lifetime,
+        cmRemoteRenewTimeIpv6Remaining,
+        cmRemoteRebindTimeIpv6Remaining,
+        cmRemoteTimeOffsetIpv6
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { cmRemoteGroups 3 }
+
+cmRemoteDocsisUpstreamGroup OBJECT-GROUP
+    OBJECTS {
+        cmRemoteUsPrimarySid,
+        cmRemoteUsSymbolRate,
+        cmRemoteUsQAMModulation
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { cmRemoteGroups 4 }
+
+cmRemoteInterfaceGroup OBJECT-GROUP
+    OBJECTS {
+        cmRemoteIfTableNextIfIndex,
+        cmRemoteIfTablePrimaryIpAddressType,
+        cmRemoteIfTablePrimaryIpAddress,
+        cmRemoteIfTablePrimaryIpSubnetType,
+        cmRemoteIfTablePrimaryIpSubnet
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { cmRemoteGroups 5 }
+
+cmRemoteEventGroup OBJECT-GROUP
+    OBJECTS {
+        cmRemoteEventTableNextIndex
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { cmRemoteGroups 6 }
+
+cmRemoteFactoryGroup OBJECT-GROUP
+    OBJECTS {
+        cmRemoteMacAddress,
+        cmRemoteMacAddrType,
+        cmRemoteMacAddrDescr
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects used for factory data items."
+    ::= { cmRemoteGroups 99 }
+
+
+
+END

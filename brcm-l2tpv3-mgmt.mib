@@ -1,0 +1,270 @@
+--****************************************************************************
+--
+-- Copyright (c) 2010-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-l2tpv3-mgmt.mib
+--    Author:  Chris Zacker
+--    Creation Date: 28-April-2010
+--
+--**************************************************************************
+--    Description:
+--
+--    MIB for runtime management of the L2TPv3 configuration
+--
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-L2TPV3-MGMT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE
+        FROM SNMPv2-SMI
+    DisplayString,
+    TruthValue
+        FROM SNMPv2-TC
+    InetAddressType,
+    InetAddress
+        FROM INET-ADDRESS-MIB
+    cableDataMgmtMIBObjects
+        FROM BRCM-CABLEDATA-MGMT-MIB;
+
+l2tpv3Mgmt MODULE-IDENTITY
+    LAST-UPDATED "201401080000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "    BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for runtime management and configuration
+         of objects related to the L2TPv3 configuration."
+    REVISION      "201401080000Z"
+    DESCRIPTION
+        "Corrected Last-Updated, Revision and Description fields."
+    REVISION      "200908120000Z"
+    DESCRIPTION
+        "Added a value range for ftpServerPort."
+    REVISION      "200903040000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cableDataMgmtMIBObjects 14 }
+
+l2tpv3Enable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Specifies whether or not L2TPv3 is enabled or not."
+    ::= { l2tpv3Mgmt 1 }
+
+l2tpv3StaticAddressEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Specifies whether or not to use a Static IP address for the WAN interface."
+    ::= { l2tpv3Mgmt 2 }
+
+l2tpv3StaticAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for l2tpv3StaticAddress. Note: This value only applies if l2tpv3StaticAddressEnable
+        is set to TRUE."
+    ::= { l2tpv3Mgmt 3 }
+
+l2tpv3StaticAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The static WAN internet address used for the L2TPv3 setup. Note: This value only applies if l2tpv3StaticAddressEnable
+        is set to TRUE."
+    ::= { l2tpv3Mgmt 4 }
+
+l2tpv3StaticSubnetMaskType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for l2tpv3StaticSubnetMask. Note: This value only applies if l2tpv3StaticAddressEnable
+        is set to TRUE."
+    ::= { l2tpv3Mgmt 5 }
+
+l2tpv3StaticSubnetMask OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The static Subnet Mask used for the L2TPv3 setup. Note: This value only applies if l2tpv3StaticAddressEnable
+        is set to TRUE."
+    ::= { l2tpv3Mgmt 6 }
+
+l2tpv3StaticRouterType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for l2tpv3StaticRouter. Note: This value only applies if l2tpv3StaticAddressEnable
+        is set to TRUE."
+    ::= { l2tpv3Mgmt 7 }
+
+l2tpv3StaticRouter OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The static Router internet address used for the L2TPv3 setup. Note: This value only applies if l2tpv3StaticAddressEnable
+        is set to TRUE."
+    ::= { l2tpv3Mgmt 8 }
+
+l2tpv3TunnelInterface OBJECT-TYPE
+    SYNTAX            INTEGER {
+                      eth(1),
+                      usb(2),
+                      wifi0(3),
+                      wifi1(4),
+                      wifi2(5),
+                      wifi3(6),
+                      wifi4(7),
+                      wifi5(8),
+                      wifi6(9),
+                      wifi7(10)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The interface that the tunnel will be created through. "
+    DEFVAL { eth }
+    ::= { l2tpv3Mgmt 9 }
+
+l2tpv3AuthEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Specifies whether or not L2TPv3 Authentication is enabled."
+    ::= { l2tpv3Mgmt 10 }
+
+l2tpv3DigestValue OBJECT-TYPE
+    SYNTAX        INTEGER {
+                  md5(1),
+                  sha1(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "If l2tpv3AuthEnable is enabled, this mib will specific which type to use. "
+    DEFVAL { md5 }
+    ::= { l2tpv3Mgmt 11 }
+
+l2tpv3SharedSecret OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (1..32))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The shared secret to be used by the L2TPv3 connection."
+    DEFVAL { "" }
+    ::= { l2tpv3Mgmt 12 }
+
+l2tpv3EndpointAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for l2tpv3EndpointAddress."
+    ::= { l2tpv3Mgmt 13 }
+
+l2tpv3EndpointAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The endpoint internet address used for the L2TPv3 connection."
+    ::= { l2tpv3Mgmt 14 }
+
+l2tpv3VirtualCircuitID OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE (1..32))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The Virtual Circuit ID to be used by the L2TPv3connection."
+    DEFVAL { "" }
+    ::= { l2tpv3Mgmt 15 }
+
+l2tpv3CookieSize OBJECT-TYPE
+    SYNTAX       INTEGER {
+                 nocookie(1),
+                 size4(2),
+                 size8(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Specifies what the cookies size will be for the L2TPv3 connection. "
+    DEFVAL { nocookie }
+    ::= { l2tpv3Mgmt 16 }
+
+l2tpv3ApplySettings OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "When this value is set to true, all of the configured values will be applied to the system.
+        This mib is used to regulate when the settings are passed down to the system.
+        This mib will always return false"
+    ::= { l2tpv3Mgmt 17 }
+
+END

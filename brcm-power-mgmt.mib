@@ -1,0 +1,531 @@
+--****************************************************************************
+--
+-- Copyright (c) 2012-2015 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-power-mgmt.mib
+--    Author:   Kevin O'Neal
+--    Creation Date: August 14, 2012
+--
+--**************************************************************************
+--    Description:
+--
+--    MIB for runtime management of BFC power management features
+--
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-POWER-MGMT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Integer32
+        FROM SNMPv2-SMI
+    TruthValue
+        FROM SNMPv2-TC
+    MODULE-COMPLIANCE,
+    OBJECT-GROUP
+        FROM SNMPv2-CONF
+    ifIndex
+        FROM IF-MIB
+    cableDataMgmtMIBObjects
+        FROM BRCM-CABLEDATA-MGMT-MIB;
+
+powerMgmt MODULE-IDENTITY
+    LAST-UPDATED "201502160000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "   BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for runtime management and configuration
+         of objects related to power management features."
+    REVISION      "201502160000Z"
+    DESCRIPTION
+        "Added the powerMgmtObsoleteGroup."
+    REVISION      "201409020000Z"
+    DESCRIPTION
+        "Added object powerMgmtCmRebootOnUtilityPowerTransition."
+    REVISION      "201403110000Z"
+    DESCRIPTION
+        "Added objects related to networked standby mode."
+    REVISION      "201309190000Z"
+    DESCRIPTION
+        "Added object powerMgmtCmActiveModeEnabled"
+    REVISION      "201304110000Z"
+    DESCRIPTION
+        "Added missing types MODULE-COMPLIANCE, OBJECT-GROUP, and ifIndex to
+         imports section."
+    REVISION      "201211090000Z"
+    DESCRIPTION
+        "Deprecated object powerMgmtIfDelay."
+    REVISION      "201208140000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cableDataMgmtMIBObjects 20 }
+
+--
+-- Textual Conventions
+--
+
+--
+-- Object Definitions
+--
+
+powerMgmtNotifications  OBJECT IDENTIFIER ::= { powerMgmt 0 }
+
+powerMgmtMIBObjects OBJECT IDENTIFIER ::= { powerMgmt 1 }
+
+powerMgmtConformance OBJECT IDENTIFIER ::= { powerMgmt 2 }
+
+--
+-- MIB objects
+--
+
+powerMgmtBase OBJECT IDENTIFIER ::= { powerMgmtMIBObjects 1 }
+
+powerMgmtInterfaceTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF PowerMgmtInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table is used to characterize the power management properties of
+         the device on a per-interface basis.  An entry exists in this table 
+         for each entry in the ifTable which has power management capability."
+    ::= { powerMgmtBase 1 }
+
+powerMgmtInterfaceEntry OBJECT-TYPE
+    SYNTAX      PowerMgmtInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry containing power management information applicable to a
+         particular interface."
+    INDEX   { ifIndex }
+    ::= { powerMgmtInterfaceTable 1 }
+
+PowerMgmtInterfaceEntry ::= 
+    SEQUENCE    {
+        powerMgmtIfDelay    Integer32
+    }
+
+powerMgmtIfDelay OBJECT-TYPE
+    SYNTAX      Integer32 (-1..2147483647)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      deprecated
+    DESCRIPTION
+        "This object has been deprecated and may not be supported on some
+         devices.  If this object is not supported, then the 
+         powerMgmtInterfaceTable will also not be supported since this is the
+         only column in the table.
+         
+         Specifies the number of seconds following a battery or thermal event
+         before the interface will enter reduced power mode.  If set to -1, 
+         the interface will never enter reduced power mode and will remain at 
+         full power until the trigger event is cleared.
+
+         Trigger events may include, but are not limited to, transition to 
+         battery power or temperature which exceeds thermal threshold limits.
+
+         Reaction to reduced power mode is interface and device dependent.
+         Some interfaces may be disabled completely in reduced power mode,
+         others may have capabilities restricted in order to conserve power."
+    DEFVAL { 0 }
+    ::= { powerMgmtInterfaceEntry 1 }
+
+powerMgmtNetworkedStandbyTestModeEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object is used to activate and deactivate interfaces for testing 
+         to ensure compliance with the Networked Standby regulation.  Networked
+         standby test mode is a mode of operation specific to testing the 
+         Networked Standby regulation in which only a single network interface 
+         is activated, and all other interfaces are deactivated.
+
+         The interface which remains activated when operating in networked 
+         standby Test mode is configured by the value of the object 
+         powerMgmtNetworkedStandbyActiveInterface.  
+
+         The WAN interface may also optionally be deactivated in networked 
+         standby test mode, configured by the value of the 
+         powerMgmtNetworkedStandbyWanDisable object.
+
+         When this object is set to 'true', the device will enter networked 
+         standby test mode.  If the object already has a value of 'true', 
+         setting it to 'true' again will cause the device to remain in networked 
+         standby test mode, and any changes which have been made to the 
+         configuration objects will be applied.
+
+         When this object is set to 'false', the device will return to
+         normal operational mode and all network interfaces will be activated.
+
+         Note that setting this object will cause the device to begin
+         transitioning into or out of networked standby test mode.  The 
+         transition may take some time to complete.  The current state of the 
+         device is reported by the powerMgmtNetworkedStandbyOperStatus object."
+    REFERENCE
+         "COMMISSION REGULATION (EU) No 801/2013 of 22 August 2013
+          http://eur-lex.europa.eu/LexUriServ/LexUriServ.do?uri=OJ:L:2013:225:0001:0012:EN:PDF"
+    DEFVAL { false }
+    ::= { powerMgmtBase 2 }
+
+powerMgmtNetworkedStandbyActiveInterface OBJECT-TYPE
+    SYNTAX      INTEGER {
+                ethernet(6),
+                wifi(71),
+                cm(127),
+                usb(160),
+                moca(236)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object is used to configure the interface which remains activated
+         when the device is operating in networked standby test mode, as 
+         described in the powerMgmtNetworkedStandbyTestModeEnable object.
+
+         Note that the enumerated values for this object correspond to ifType 
+         values for the selected interface as defined in the IANAifType-MIB."
+    REFERENCE
+         "IANAifType-MIB
+          http://www.iana.org/assignments/ianaiftype-mib"
+    DEFVAL { ethernet }
+    ::= { powerMgmtBase 3 }
+
+powerMgmtNetworkedStandbyWanDectivate OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object configures whether the WAN interface is deactivated when 
+         the device is operating in networked standby test mode.  
+
+         When this object is set to a value of 'false', the WAN 
+         interface will remain activated in addition to the activated interface 
+         when networked standby test mode is enabled.  
+
+         When this object is set to its default value of 'true', the WAN 
+         interface will be deactivated when operating in networked standby test 
+         mode, leaving only the activated interface enabled."
+    DEFVAL { true }
+    ::= { powerMgmtBase 4 }
+
+powerMgmtNetworkedStandbyTestOperStatus OBJECT-TYPE
+    SYNTAX      BITS {
+                modeActive(0),
+                stateInTransition(1),
+                settingsReconfigured(2)
+    }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This object reports the current state of the system with regards to
+         networked standby test mode.
+
+         The value of the modeActive(0) bit indicates whether the device has 
+         been configured to operate in networked standby test mode.  When this 
+         bit is set, it indicates network standby mode has been invoked.  When 
+         this bit is clear, it indicates that network standby test mode has not 
+         been invoked.
+
+         The value of the stateInTransition(1) bit indicates whether a 
+         transition to or from networked standby test mode is currently in 
+         progress.  When the bit is set, a transition to the mode indicated by 
+         the modeActive bit is currently underway.  The device should not be 
+         considered to be operating in the selected mode until the 
+         stateInTransition bit is clear.
+
+         The settingsReconfigured(2) bit indicates that the value of one or more
+         of the configuration objects has been changed since networked standby
+         test mode was last invoked.  When this bit is set, the values of the 
+         configuration objects do not match the current operational mode of the
+         device."
+    ::= { powerMgmtBase 5 }
+
+powerMgmtCableModem OBJECT IDENTIFIER ::= { powerMgmtMIBObjects 2 }
+
+powerMgmtCmChannelBondingStrategy OBJECT-TYPE
+    SYNTAX      INTEGER {
+                noChange(0),
+                docsis3(1),
+                macReset1x1(2),
+                docsis3WithMacResetFallback(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines the channel bonding transition strategy used when the CM
+         enters reduced power mode due to transition to battery power or thermal 
+         event.
+
+         For the purposes of this MIB description, 'reduced power mode' means a 
+         mode of operation in which modem features are intentionally disabled as 
+         a response to a trigger event.  It is not related to measures which 
+         may be employed during normal operation with the goal of improving 
+         overall energy efficiency.
+         
+         When set to a value of noChange(0), the modem will not change the 
+         channel bonding configuration in response to a transition to reduced
+         power mode.  The device will continue to operate in the bonding 
+         configuration that was in effect at the time the modem entered 
+         reduced power mode.
+         
+         When set to docsis3(1), the CM will conform to DOCSIS 3.0 requirements 
+         by dispatching a CM-STATUS message to the CMTS with a type code of 9, 
+         'CM operating on battery backup', indicating a transition to battery 
+         mode.  The CMTS is then expected to initiate a DBC transaction which 
+         will reduce the number of channels used by the CM.  
+
+         Note that the 'battery backup' event code is used for either type of 
+         trigger, because the CM-STATUS event set does not include message codes
+         for other reduced power events.
+         
+         The value of macReset1x1(2) is used when the CM is operating in an 
+         environment in which the CMTS does not respond to CM-STATUS messaging 
+         for type code 9.
+
+         In this mode, upon transition to reduced power mode, the CM will 
+         re-initialize the MAC and re-register, reporting a value of 0 for 
+         the Multiple Transmit Channel Support modem capability and a value of 0 
+         for the Multiple Receive Channel Support modem capability. This disables 
+         both downstream channel bonding and Multiple Transmit Channel Mode.  
+         The CM will then register in DOCSIS 2.0 1x1 mode, resulting in reduced 
+         power consumption.
+
+         Note that if a critical data service (such as a telephone call in the 
+         case of a device which includes an eMTA) is in progress, the MAC 
+         re-init will be deferred until the critical operation completes.  Upon 
+         transition back to full power mode, the CM will again re-init the MAC, 
+         this time advertising Multiple Transmit Channel support and Multiple 
+         Receive Channel Support to the extent that the device is capable.  
+         Again, the re-init may be deferred if necessary to avoid interruption 
+         of a critical data service.
+
+         The default value of cmStatusWith1x1Fallback(3) combines the docsis3
+         mode with a fallback to macReset1x1 mode.  Upon transition to reduced
+         power mode, the CM will dispatch a CM-STATUS message to the CMTS in an
+         attempt to change to 1x1 mode according to standard DOCSIS mechanisms.  
+         If, after 30 seconds, the CM has not transitioned to 1x1 mode then the 
+         CM will re-initialize the MAC and re-register in 1x1 mode as described 
+         above."
+    DEFVAL { docsis3WithMacResetFallback }
+    ::= { powerMgmtCableModem 1 }
+
+powerMgmtCmActiveModeEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables the 'active mode' power save feature for the 
+         cablemodem.  If enabled, the cablemodem will apply power saving 
+         measures even when operating on utility power.  Specifically, enabling 
+         this feature will enable tuner narrowband mode whenever the CM is 
+         operating in a non-bonded configuration, regardless of power source.
+
+         Note that this object only controls active mode for the cablemodem
+         interface.  Active mode features for other interfaces (eg ethernet,
+         wifi, etc) are controlled by other objects."
+    DEFVAL { true }
+    ::= { powerMgmtCableModem 2 }
+
+powerMgmtCmRebootOnUtilityPowerTransition OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object is used to control the behavior of the system when utitlity
+         power is restored after having previously been operating on battery 
+         power.
+
+         When set to its default value of 'true', the system will reboot upon
+         restoration of utility power.  Rebooting allows for a more timely
+         and stable return to full power mode compared to the use of a MAC
+         re-init and re-registration, while maintaining a similar end-user
+         experience.
+
+         Note that if a critical data service (such as a telephone call in the 
+         case of a device which includes an eMTA) is in progress, the reboot 
+         will be deferred until the critical operation completes.
+
+         When set to 'false', the system will not reboot upon restoration of
+         utility power.  Instead, disabled system components will be returned
+         to operation at runtime, with channel bonding resumption controlled
+         by the value of powerMgmtCmChannelBondingStrategy."
+    DEFVAL { true }
+    ::= { powerMgmtCableModem 3 }
+
+powerMgmtEthernet OBJECT IDENTIFIER ::= { powerMgmtMIBObjects 3 }
+
+powerMgmtEthDefaultAutoPowerDownEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables the Ethernet automatic powerdown feature.  If 
+         enabled, the analog portion of the Ethernet PHY circuitry will be shut 
+         off when the cable is not connected or the link partner power is off.
+
+         If the device has multiple ethernet ports, the value of this setting
+         will be applied to all ports.
+
+         The value of this object is only applied at system initialization.  If
+         the value is modified, the new value will be stored to non-volatile
+         storage but will not take effect until the next reboot."
+    DEFVAL { true }
+    ::= { powerMgmtEthernet 1 }
+
+powerMgmtEthDefaultAutoPowerDownSleepTimer OBJECT-TYPE
+    SYNTAX      Integer32 (0..15000)
+    UNITS       "milliseconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "When powerMgmtEthDefaultAutoPowerDownEnable is set to true(1), the value of
+         this object controls the length of time after the Ethernet link drops
+         before the PHY circuitry is disabled.
+
+         If the device has multiple ethernet ports, the value of this setting
+         will be applied to all ports.
+
+         The acceptable values for this object are device-specific.  If the 
+         object is set to a value which is within the allowable range but does
+         not match a discrete acceptable value for the specific device, the
+         value will automatically be set to the nearest acceptable value.
+
+         The value of this object is only applied at system initialization.  If
+         the value is modified, the new value will be stored to non-volatile
+         storage but will not take effect until the next reboot."
+    DEFVAL { 2700 }
+    ::= { powerMgmtEthernet 2 }
+
+powerMgmtEthDefaultAutoPowerDownWakeTimer OBJECT-TYPE
+    SYNTAX      Integer32 (0..15000)
+    UNITS       "milliseconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "When powerMgmtEthDefaultAutoPowerDownEnable is set to true(1), and the 
+         Ethernet PHY has been disabled due to the link being down, the PHY
+         will be re-enabled upon restoration of link.  The value of this object
+         controls the frequency at which a check for link restoration is made.
+
+         If the device has multiple ethernet ports, the value of this setting
+         will be applied to all ports.
+
+         The acceptable values for this object are device-specific.  If the 
+         object is set to a value which is within the allowable range but does
+         not match a discrete acceptable value for the specific device, the
+         value will automatically be set to the nearest acceptable value.
+
+         The value of this object is only applied at system initialization.  If
+         the value is modified, the new value will be stored to non-volatile
+         storage but will not take effect until the next reboot."
+    DEFVAL { 84 }
+    ::= { powerMgmtEthernet 3 }
+
+--
+-- Conformance definitions
+--
+
+--
+-- Compliance Statements
+--
+
+powerMgmtCompliances  OBJECT IDENTIFIER ::= { powerMgmtConformance 1 }
+
+powerMgmtGroups       OBJECT IDENTIFIER ::= { powerMgmtConformance 2 }
+
+powerMgmtCompliance  MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "The compliance statement for devices which support the power management 
+         feature."
+    MODULE
+    MANDATORY-GROUPS {
+               powerMgmtBaseGroup
+    }
+    ::= { powerMgmtCompliances 1 }
+
+
+powerMgmtBaseGroup OBJECT-GROUP
+    OBJECTS {
+        powerMgmtCmChannelBondingStrategy,
+        powerMgmtCmActiveModeEnabled,
+        powerMgmtCmRebootOnUtilityPowerTransition,
+        powerMgmtEthDefaultAutoPowerDownEnable,
+        powerMgmtEthDefaultAutoPowerDownSleepTimer,
+        powerMgmtEthDefaultAutoPowerDownWakeTimer,
+        powerMgmtNetworkedStandbyTestModeEnable,
+        powerMgmtNetworkedStandbyActiveInterface,
+        powerMgmtNetworkedStandbyWanDectivate,
+        powerMgmtNetworkedStandbyTestOperStatus
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { powerMgmtGroups 1 }
+
+powerMgmtObsoleteGroup OBJECT-GROUP
+    OBJECTS {
+        powerMgmtIfDelay
+    }
+    STATUS      obsolete
+    DESCRIPTION
+        "A set of objects which are now either obsolete or deprecated."
+    ::= { powerMgmtGroups 2 }
+
+END

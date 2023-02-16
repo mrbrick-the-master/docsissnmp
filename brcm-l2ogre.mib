@@ -1,0 +1,522 @@
+--****************************************************************************
+--
+-- Copyright (c) 2012-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--                                                                          
+--                                                                          
+--**************************************************************************
+--    Filename: brcm-l2ogre.mib
+--    Author:   Jayesh Patel
+--    Creation Date: 26-Jan-2012
+--
+--**************************************************************************
+--    Description:
+--
+--              Private MIB for runtime configuration of GRE tunnel
+--
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-L2OGRE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Counter64,
+    Unsigned32,
+    Integer32
+        FROM SNMPv2-SMI
+
+    RowStatus, 
+    TruthValue,
+    DisplayString
+        FROM SNMPv2-TC 
+
+    residentialGatewayMgmt
+        FROM BRCM-RG-MGMT-MIB
+
+    InetAddressType,
+    InetAddress
+        FROM INET-ADDRESS-MIB;
+
+    
+            
+l2ogreMib MODULE-IDENTITY
+    LAST-UPDATED "201408070000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "       BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for runtime management of
+         GRE tunnel in residential gateway devices."
+    REVISION      "201408070000Z"
+    DESCRIPTION
+        "Added l2ogreKeepAliveFailureInterval & l2ogreKeepAliveRecoverInterval"
+    REVISION      "201407290000Z"
+    DESCRIPTION
+        "Fixed copyright header date."
+    REVISION      "201407070000Z"
+    DESCRIPTION
+        "Cleaned up smilint reported errors"
+    REVISION      "201405280000Z"
+    DESCRIPTION
+        "Added l2ogreCapable"
+    REVISION      "201405130000Z"
+    DESCRIPTION
+        "Added l2ogreDsQosWmm for enabling/disabling"
+    REVISION      "201401240000Z"
+    DESCRIPTION
+        "extended l2ogrePriRemoteAddress to allow disabling."
+    REVISION      "201309010000Z"
+    DESCRIPTION
+        "Added l2ogreTcpMssClamping"
+    REVISION      "201308210000Z"
+    DESCRIPTION
+        "Added CM enum to l2ogreOrigIf OID."
+    REVISION      "201305030000Z"
+    DESCRIPTION
+        "Removed l2ogreStatsRowStatus type from the
+        L2oGreStatsEntry sequence."
+    REVISION      "201201260000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { residentialGatewayMgmt 3 }
+  
+l2ogreBase OBJECT IDENTIFIER ::= { l2ogreMib 1 }
+
+l2ogreEnabled OBJECT-TYPE     
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable GRE Tunnel support in the device."
+   ::= { l2ogreBase 1 }
+
+l2ogrePriRemoteAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The IP address type (ipv4, ipv6 or dns) of primary remote
+         endpoint of the GRE tunnel."
+    DEFVAL { ipv4 }
+    ::= { l2ogreBase 2 }
+
+l2ogrePriRemoteAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "IP address or FQDN of primary remote endpoint of the GRE tunnel.
+        When l2ogrePriRemoteAddressType is not set to dns, and this is set to 
+        0.0.0.0 or the IPv6 Unspecified Address, all GRE Tunnel Source 
+        Interfaces are disabled"
+    ::= { l2ogreBase 3 }
+
+l2ogreSecRemoteAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The IP address type (ipv4, ipv6 or dns) of secondary remote 
+         endpoint of the GRE tunnel."
+    DEFVAL { ipv4 }
+    ::= { l2ogreBase 4 }
+
+l2ogreSecRemoteAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "IP address or FQDN of secondary remote endpoint of the GRE tunnel."
+    ::= { l2ogreBase 5 }
+
+l2ogreDSCP OBJECT-TYPE
+    SYNTAX      Integer32 (0..63)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The method is used to set the high 6 bits of TOS in the 
+         IPv4 header or traffic class in IPv6 header."
+    ::= { l2ogreBase 6 }
+
+l2ogreKeepAliveMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                disabled(1), 
+                ping(2),
+                ping-noswitchover(3) 
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Keepalive modes for failover mechanism.
+         ping - Use ICMP pings within tunnel as a keepalive messages."
+    ::= { l2ogreBase 7 }
+
+l2ogreKeepAliveCount OBJECT-TYPE
+    SYNTAX      Integer32  
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Number of keep-alive messages sent at regular interval."
+    ::= { l2ogreBase 8 }
+
+l2ogreKeepAliveInterval OBJECT-TYPE
+    SYNTAX      Integer32  
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Interval in seconds between keep-alive messages."
+    ::= { l2ogreBase 9 }
+
+l2ogreKeepAliveFailureThreshold OBJECT-TYPE
+    SYNTAX      Integer32  
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Number of keep-alive failures that will cause fail-over."
+    ::= { l2ogreBase 10 }
+
+l2ogreStatsTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF L2oGreStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table provides statistical information of GRE tunnel." 
+    ::= { l2ogreBase 11 }
+
+l2ogreStatsEntry OBJECT-TYPE
+    SYNTAX      L2oGreStatsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table provides statistical information of GRE tunnel." 
+    INDEX { l2ogreStatsIndex }
+    ::= { l2ogreStatsTable 1 }
+
+L2oGreStatsEntry ::= SEQUENCE {
+    l2ogreStatsIndex                    Integer32,
+    l2ogreStatsBytesSent                Counter64,
+    l2ogreStatsBytesReceived            Counter64,
+    l2ogreStatsPacketsSent              Counter64,
+    l2ogreStatsPacketsReceived          Counter64,
+    l2ogreStatsDiscardPacketsReceived   Counter64,
+    l2ogreStatsErrorPacketsReceived     Counter64,
+    l2ogreStatsKeepAliveSent            Counter64,
+    l2ogreStatsKeepAliveReceived        Counter64
+}
+
+l2ogreStatsIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..256) 
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Table index"
+    ::= { l2ogreStatsEntry 1 }
+
+l2ogreStatsBytesSent OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number bytes sent."
+    ::= { l2ogreStatsEntry 2 }
+
+l2ogreStatsBytesReceived OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number bytes received."
+    ::= { l2ogreStatsEntry 3 }
+
+l2ogreStatsPacketsSent OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number packets sent."
+    ::= { l2ogreStatsEntry 4 }
+
+l2ogreStatsPacketsReceived OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number packets received."
+    ::= { l2ogreStatsEntry 5 }
+
+l2ogreStatsDiscardPacketsReceived OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number packets received that were discarded.
+         Because source network interface is down."
+    ::= { l2ogreStatsEntry 6 }
+
+l2ogreStatsErrorPacketsReceived OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number packets received that were in error.
+         Because tunnel packets are not correct type.
+         Eg. Received IP packet instead of L2 packets."
+    ::= { l2ogreStatsEntry 7 }
+
+l2ogreStatsKeepAliveSent OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number keepalive packets sent."
+    ::= { l2ogreStatsEntry 8 }
+
+l2ogreStatsKeepAliveReceived OBJECT-TYPE
+    SYNTAX      Counter64 
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Number keepalive packets received."
+    ::= { l2ogreStatsEntry 9 }
+
+
+l2ogreSourceIfTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF L2oGreSourceIfEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table contains information specific to network source interface 
+         whose traffic is mapped into GRE tunnel." 
+    ::= { l2ogreBase 12 }
+
+l2ogreSourceIfEntry OBJECT-TYPE
+    SYNTAX      L2oGreSourceIfEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "List of individual source interface entries mapped into GRE tunnel."
+    INDEX { l2ogreSourceIfInstance }
+    ::= { l2ogreSourceIfTable 1 }
+
+L2oGreSourceIfEntry ::= SEQUENCE {
+    l2ogreSourceIfInstance           Unsigned32,
+    l2ogreSourceIf                   INTEGER,
+    l2ogreSourceIfEnabled            TruthValue,
+    l2ogreSourceIfVlanTag            Integer32,
+    l2ogreSourceIfMplsHeader         Integer32,
+    l2ogreSourceIfRowStatus          RowStatus
+}
+
+l2ogreSourceIfInstance    OBJECT-TYPE
+    SYNTAX      Unsigned32 
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The key for a unique instance of this object."
+    ::= {l2ogreSourceIfEntry 1 }
+
+l2ogreSourceIf OBJECT-TYPE
+    SYNTAX      INTEGER {
+                        wifi1-0(1),
+                        wifi1-1(2),
+                        wifi1-2(3),
+                        wifi1-3(4),
+                        wifi1-4(5),
+                        wifi1-5(6),
+                        wifi1-6(7),
+                        wifi1-7(8),
+                        wifi2-0(9),
+                        wifi2-1(10),
+                        wifi2-2(11),
+                        wifi2-3(12),
+                        wifi2-4(13),
+                        wifi2-5(14),
+                        wifi2-6(15),
+                        wifi2-7(16)
+        }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Source interface whose traffic will be pass through GRE tunnel."
+    ::= { l2ogreSourceIfEntry 2 }
+
+l2ogreSourceIfEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable mapping traffic from network interface into GRE tunnel."
+   ::= { l2ogreSourceIfEntry 3 }
+
+l2ogreSourceIfVlanTag OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Add VLAN tag consists of 16bit of Tag Protocol Identifier (TPID)
+         and 16 bit of Tag Control Identifier (TCI).
+         Value of 0 will disable adding VLAN tag.
+         Tag Protocol Identifier (TPID) should set to 0x8100."
+    ::= { l2ogreSourceIfEntry 4 }
+
+l2ogreSourceIfMplsHeader OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "MPLS Header. Value of 0 will disable adding MPLS Header."
+    ::= { l2ogreSourceIfEntry 5 }
+
+l2ogreSourceIfRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The RowStatus interlock for the creation and deletion of a table entry."
+    ::= { l2ogreSourceIfEntry 6 }
+
+l2ogreOrigIf OBJECT-TYPE
+    SYNTAX      INTEGER {
+                eRouter(1),
+                cm(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Originating Interface of GRE tunnel."
+    ::= { l2ogreBase 13 }
+
+l2ogreConcentratorServiceName OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "FQDN of GRE tunnel concentrator/gw service.
+         If this is set then, DNS Query of type SRV will be used for discovering
+         FQDN of primary and secondary remote endpoint of GRE tunnel."
+    ::= { l2ogreBase 14 }
+
+l2ogreDnsResolverRetryTimerMin OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Minimum timeout interval in seconds before retrying DNS query."
+    ::= { l2ogreBase 15 }
+
+l2ogreDnsResolverRetryTimerMax OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Maximum timeout interval in seconds before retrying DNS query."
+    ::= { l2ogreBase 16 }
+    
+
+l2ogreTcpMssClamping OBJECT-TYPE
+    SYNTAX      Integer32 (0..1420)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Specifies  whether TCP MSS clamping is enabled on the interface.
+         0 disables clamping, 1 clamps the MSS depending on the
+         interface MTU. A value > 1 will be used as clamping size."
+    DEFVAL { 0 }
+    ::= { l2ogreBase 17 }
+
+l2ogreDsQosWmm OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables downstream 802.11e WMM Qos mapping (Access Category) 
+        from DSCP / VLAN."
+    DEFVAL { true }
+    ::= { l2ogreBase 18 }
+
+l2ogreCapable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates if GRE is supported"
+    DEFVAL { true }
+    ::= { l2ogreBase 19 }
+
+l2ogreKeepAliveFailureInterval OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..65535)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Time (in seconds) to wait after both Primary and Secondary GRE 
+        concentrators stop responding before retrying Primary GRE concentrator 
+        address"
+    DEFVAL { 300 }        
+    ::= { l2ogreBase 20 }
+    
+l2ogreKeepAliveRecoverInterval OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Time (in seconds) to remain on Secondary GRE concentrator, with clients 
+        connected, before retrying Primary GRE Concentrator"
+    DEFVAL { 43200 }
+    ::= { l2ogreBase 21 }        
+
+
+END
+ 

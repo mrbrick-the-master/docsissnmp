@@ -1,0 +1,323 @@
+--****************************************************************************
+--
+-- Copyright (c) 2005-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-sw-dload.mib
+--    Author:   Maurice Turcotte
+--    Creation Date: 06 AUG 2005
+--
+--****************************************************************************
+--    Description:
+--
+--              private MIB for software download management
+--
+--****************************************************************************
+--    Revision History:
+--
+--****************************************************************************
+
+BRCM-SW-DLOAD-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Integer32
+        FROM SNMPv2-SMI
+    DisplayString
+        FROM SNMPv2-TC
+    OBJECT-GROUP,
+    MODULE-COMPLIANCE
+        FROM SNMPv2-CONF
+    InetAddress, 
+    InetAddressType
+        FROM INET-ADDRESS-MIB
+    SnmpAdminString
+        FROM SNMP-FRAMEWORK-MIB
+    cableDataMgmtMIBObjects
+        FROM BRCM-CABLEDATA-MGMT-MIB;
+                
+swDownloadMgmt MODULE-IDENTITY
+    LAST-UPDATED "201407290000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "       BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    
+    DESCRIPTION
+        "MIB Module for defining software download objects."
+    REVISION      "201407290000Z"
+    DESCRIPTION
+        "Fixed copyright header date."
+    REVISION      "201008060000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cableDataMgmtMIBObjects 15 }
+    
+swModuleDownloadTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF CmSwModuleDownloadEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing download information for software  
+         modules in this system.  An entry exists in this table 
+         for each software module that can be downloaded. Note
+         that rows in this table are created by the managed 
+         system only and cannot be created or deleted by the NMS."
+    ::= { swDownloadMgmt 1 }
+
+swModuleDownloadEntry OBJECT-TYPE
+    SYNTAX      CmSwModuleDownloadEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the download attributes of a single 
+         software module."
+    INDEX  { swModuleIndex }  
+    ::= { swModuleDownloadTable 1 }
+
+CmSwModuleDownloadEntry ::=
+    SEQUENCE {
+             swModuleIndex                    Integer32,
+             swModuleDescr                    DisplayString,
+             swModuleFilename                 SnmpAdminString,
+             swModuleAdminStatus              INTEGER,
+             swModuleOperStatus               INTEGER,
+             swModuleCurrentVers              SnmpAdminString,
+             swModuleServerAddressType        InetAddressType,
+             swModuleServerAddress            InetAddress,
+             swModuleDownloadRetries          Integer32
+             }
+
+swModuleIndex OBJECT-TYPE
+        SYNTAX      Integer32 (0..32)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This object uniquely identifies the software module
+             that pertains to this row in the swDownloadTable.
+             The value of this object is context sensitive, that
+             is, this value has meaning, but that meaning is known
+             by the managed system and is outside the scope of this
+             document."
+        ::= { swModuleDownloadEntry 1 }
+
+swModuleDescr OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..64))
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "A short description of this software module,
+             e.g. linux or dhtml."
+        ::= { swModuleDownloadEntry 2 }
+
+swModuleFilename OBJECT-TYPE
+        SYNTAX      SnmpAdminString
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The filename of the software image to be downloaded via
+             TFTP.
+
+             Unless set via SNMP, this is the filename 
+             specified by the provisioning server during the boot
+             process that corresponds to the software version that
+             is desired for this module.
+
+             If unknown, the value of this object is the zero-length
+             string."
+        ::= { swModuleDownloadEntry 3 }
+
+swModuleAdminStatus OBJECT-TYPE
+        SYNTAX INTEGER {
+            upgradeFromMgt(1),
+            allowProvisioningUpgrade(2),
+            ignoreProvisioningUpgrade(3)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "If set to upgradeFromMgt(1), the device will initiate a
+             TFTP software image download.  After
+             successfully receiving an image, the device will set
+             its state to ignoreProvisioningUpgrade(3).
+             If the download process is interrupted (e.g., by a reset
+             or power failure), the device will load the previous
+             image and, after re-initialization, continue to attempt
+             loading the image specified in swModuleFilename.
+
+             If set to allowProvisioningUpgrade(2), the device will
+             use the software version information supplied by the
+             provisioning server when next rebooting (this does not
+             cause a reboot).
+
+             When set to ignoreProvisioningUpgrade(3), the device
+             will disregard software image upgrade information
+             from the provisioning server.
+
+             Note that reading this object can return
+             upgradeFromMgt(1).  This indicates that a software
+             download is currently in progress, and that the device
+             will reboot after successfully receiving an image."
+        DEFVAL { allowProvisioningUpgrade }
+        ::= { swModuleDownloadEntry 4 }
+
+swModuleOperStatus OBJECT-TYPE
+        SYNTAX INTEGER {
+            inProgress(1),
+            completeFromProvisioning(2),
+            completeFromMgt(3),
+            failed(4),
+            other(5)
+        }
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "InProgress(1) indicates that a TFTP download is
+             underway, either as a result of a version mismatch at
+             provisioning or as a result of a upgradeFromMgt request.
+             No other objects in the current row can be modified 
+             while this object is in this state.
+
+             CompleteFromProvisioning(2) indicates that the last
+             software upgrade was a result of version mismatch at
+             provisioning.
+
+             CompleteFromMgt(3) indicates that the last software
+             upgrade was a result of setting swModuleAdminStatus to
+             upgradeFromMgt.
+
+             Failed(4) indicates that the last attempted download
+             failed, ordinarily due to TFTP timeout."
+        ::= { swModuleDownloadEntry 5 }
+
+swModuleCurrentVers OBJECT-TYPE
+        SYNTAX      SnmpAdminString
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "The current version of this software module.
+             This string's syntax is that used by the
+             individual vendor to identify software versions.
+             If this is not applicable, the value MUST be a
+             zero-length string."
+        ::= { swModuleDownloadEntry 6 }
+
+swModuleServerAddressType OBJECT-TYPE
+        SYNTAX      InetAddressType
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The type of address of the TFTP server used for software
+             upgrades."
+        ::= { swModuleDownloadEntry 7 }
+
+swModuleServerAddress OBJECT-TYPE
+        SYNTAX      InetAddress
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The address of the TFTP or HTTP server used for software
+             upgrades.
+
+             If the TFTP server is unknown, return the zero-
+             length address string (see the TextualConvention)."
+        ::= { swModuleDownloadEntry 8 }
+
+swModuleDownloadRetries OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "The number of times to attempt a download of this
+             module. If the value of this object is 0, then the
+             managed system will attempt a download forever."
+        ::= { swModuleDownloadEntry 9 }
+
+    
+--
+-- Conformance definitions
+--
+swDownloadConformance      OBJECT IDENTIFIER ::= { swDownloadMgmt 100 }
+
+--
+-- Compliance Statements
+--
+swDownloadCompliances  OBJECT IDENTIFIER ::= { swDownloadConformance 1 }
+swDownloadGroups       OBJECT IDENTIFIER ::= { swDownloadConformance 2 }
+
+swDownloadCompliance  MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "The compliance statement for cablemodem devices."
+    MODULE
+    MANDATORY-GROUPS {
+               swModuleDownloadGroup
+    }
+    ::= { swDownloadCompliances 1 }
+         
+swModuleDownloadGroup OBJECT-GROUP
+    OBJECTS {
+        swModuleDescr,
+        swModuleFilename,
+        swModuleAdminStatus,
+        swModuleOperStatus,
+        swModuleCurrentVers,
+        swModuleServerAddressType,
+        swModuleServerAddress,
+        swModuleDownloadRetries
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support software module downloading."
+    ::= { swDownloadGroups 1 }
+    
+END

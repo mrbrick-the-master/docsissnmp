@@ -1,0 +1,250 @@
+--****************************************************************************
+--
+-- Copyright (c) 2009-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--
+--    Filename: brcm-stb.mib
+--    Author:   Maurice Turcotte
+--    Creation Date: 23-march-2009
+--
+--**************************************************************************
+--    Description:
+--
+--		MIB for STB branch of Broadcom enterprise MIBs
+--		
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-STB-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-IDENTITY
+        FROM SNMPv2-SMI
+    broadcom
+        FROM BRCM-SMI; 
+        
+brcmStb MODULE-IDENTITY
+    LAST-UPDATED "201406240000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "	BANANA-CABLEDATA
+                (cableData branch of the 
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "The MIB for the Broadcom enterprise dealing Settop
+         Box Systems, including, but not limited to, cable
+         satellite, and IP TV systems."
+    REVISION      "201406240000Z"
+    DESCRIPTION
+         "Fixed dates."
+    REVISION      "200903230000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { broadcom 7 }
+    
+brcmCableStb OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmCableStb is the root OBJECT IDENTIFIER for
+         all Broadom Cable Settop Box MIB objects."
+    ::= { brcmStb 1 }
+
+brcmSatelliteStb OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmSatelliteStb is the root OBJECT IDENTIFIER for
+         all Broadom Satellite Settop Box MIB objects."
+    ::= { brcmStb 2 }
+
+brcmIpStb OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmIpStb is the root OBJECT IDENTIFIER for
+         all Broadom IP TV Settop Box MIB objects."
+    ::= { brcmStb 3 }
+
+-- brcmCableStb objects
+
+brcmCableStbProducts OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmCableStbProducts is the root OBJECT IDENTIFIER from
+         which sysObjectID values are assigned."
+    ::= { brcmCableStb 1 }
+    
+brcmCableStbMgmt OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmCableStbMgmt is the main subtree for deployed MIBs."
+    ::= { brcmCableStb 2 }
+
+brcmCableStbAgentCapability OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmCableStbAgentCapability provides a root OBJECT IDENTIFIER
+         from which AGENT-CAPABILITIES values may be assigned,
+         for use in the sysORTable."
+    ::= { brcmCableStb 3 }
+
+brcmCableStbExperimental OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmCableStbExperimental provides a root OBJECT IDENTIFIER
+         where experimental mibs may be temporarily
+         placed.  MIBs are typically only located here as works-in-progress,
+         on either the IANA or BRCM development path.
+         MIBs should never be published under this branch, it
+         should only be used internally for development purposes."
+    ::= { brcmCableStb 4 }
+    
+brcmCableStbPrivate OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmCableStbPrivate provides a root OBJECT IDENTIFIER under which are
+         placed objects which are only intended to be used in a manufacturing,
+         engineering, or other internal environment.  Objects under this node
+         should not be available in a deployed device."
+    ::= { brcmCableStb 99 }
+    
+
+-- brcmSatelliteStb objects
+
+brcmSatelliteStbProducts OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmSatelliteStbProducts is the root OBJECT IDENTIFIER from
+         which sysObjectID values are assigned."
+    ::= { brcmSatelliteStb 1 }
+    
+brcmSatelliteStbMgmt OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmSatelliteStbMgmt is the main subtree for deployed MIBs."
+    ::= { brcmSatelliteStb 2 }
+
+brcmSatelliteStbAgentCapability OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmSatelliteStbAgentCapability provides a root OBJECT IDENTIFIER
+         from which AGENT-CAPABILITIES values may be assigned,
+         for use in the sysORTable."
+    ::= { brcmSatelliteStb 3 }
+
+brcmSatelliteStbExperimental OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmSatelliteStbExperimental provides a root OBJECT IDENTIFIER
+         where experimental mibs may be temporarily
+         placed.  MIBs are typically only located here as works-in-progress,
+         on either the IANA or BRCM development path.
+         MIBs should never be published under this branch, it
+         should only be used internally for development purposes."
+    ::= { brcmSatelliteStb 4 }
+    
+brcmSatelliteStbPrivate OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmSatelliteStbPrivate provides a root OBJECT IDENTIFIER under which are
+         placed objects which are only intended to be used in a manufacturing,
+         engineering, or other internal environment.  Objects under this node
+         should not be available in a deployed device."
+    ::= { brcmSatelliteStb 99 }
+    
+
+-- brcmIpStb objects
+
+brcmIpStbProducts OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmIpStbProducts is the root OBJECT IDENTIFIER from
+         which sysObjectID values are assigned."
+    ::= { brcmIpStb 1 }
+    
+brcmIpStbMgmt OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmIpStbMgmt is the main subtree for deployed MIBs."
+    ::= { brcmIpStb 2 }
+
+brcmIpStbAgentCapability OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmIpStbAgentCapability provides a root OBJECT IDENTIFIER
+         from which AGENT-CAPABILITIES values may be assigned,
+         for use in the sysORTable."
+    ::= { brcmIpStb 3 }
+
+brcmIpStbExperimental OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmIpStbExperimental provides a root OBJECT IDENTIFIER
+         where experimental mibs may be temporarily
+         placed.  MIBs are typically only located here as works-in-progress,
+         on either the IANA or BRCM development path.
+         MIBs should never be published under this branch, it
+         should only be used internally for development purposes."
+    ::= { brcmIpStb 4 }
+    
+brcmIpStbPrivate OBJECT-IDENTITY
+    STATUS	current
+    DESCRIPTION
+        "brcmIpStbPrivate provides a root OBJECT IDENTIFIER under which are
+         placed objects which are only intended to be used in a manufacturing,
+         engineering, or other internal environment.  Objects under this node
+         should not be available in a deployed device."
+    ::= { brcmIpStb 99 }
+    
+END
+
+

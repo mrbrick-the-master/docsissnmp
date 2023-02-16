@@ -1,0 +1,556 @@
+--****************************************************************************
+--
+-- Copyright (c) 2012-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--
+--
+--**************************************************************************
+--    Filename: brcm-wifi-hotspot.mib
+--    Author:   Jayesh Patel
+--    Creation Date: 30-Jan-2012
+--
+--**************************************************************************
+--    Description:
+--
+--              Private MIB for runtime configuration of Wi-Fi Hotspot
+--
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-WIFI-HOTSPOT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Unsigned32,
+    Integer32
+        FROM SNMPv2-SMI
+
+    RowStatus,
+    TruthValue,
+    MacAddress,
+    DisplayString
+        FROM SNMPv2-TC
+
+    residentialGatewayMgmt
+        FROM BRCM-RG-MGMT-MIB
+
+    InetAddressType,
+    InetAddress,
+    InetPortNumber
+        FROM INET-ADDRESS-MIB;
+
+wifiHotspotMib MODULE-IDENTITY
+    LAST-UPDATED "201407290000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "       BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for runtime management of
+         Wi-Fi hotspot in residential gateway devices."
+    REVISION      "201407290000Z"
+    DESCRIPTION
+        "Fixed copyright header date."
+    REVISION      "201403310000Z"
+    DESCRIPTION
+        "Cleaned up smilint reported errors"
+    REVISION      "201403030000Z"
+    DESCRIPTION
+        "Add wifiHotspotClientTable, wifiHotspotClientAddressTable for status info of hotspot clients."
+    REVISION      "201311070000Z"
+    DESCRIPTION
+        "Add option to wifiHotspotInsertDhcpOptionsMask for Secure / open marking format"
+    REVISION      "201309010000Z"
+    DESCRIPTION
+        "added bit option to wifiHotspotInsertDhcpOptionsMask for delimiter selection"
+
+    REVISION      "201308220000Z"
+    DESCRIPTION
+        "Backwards compatibility fix: Moved RowStatus back to
+        { wifiHotspotEntry 12 }, moved
+        wifiHotspotRadiusAccInterimInterval to { wifiHotspotEntry 13 }"
+    REVISION      "201307310000Z"
+    DESCRIPTION
+        "Added wifiHotspotRadiusAccInterimInterval for control of Radius
+         accounting interim reporting interval. Moved RoxStatus to
+         { wifiHotspotEntry 13 }"
+    REVISION      "201201300000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    REVISION      "201201280000Z"
+    DESCRIPTION
+        "Added wifiHotspotDisablePMKCaching and wifiHotspotConnectionSpeed*."
+    ::= { residentialGatewayMgmt 4 }
+
+wifiHotspotBase OBJECT IDENTIFIER ::= { wifiHotspotMib 1 }
+
+wifiHotspotEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable Wifi Hotspot support in the device."
+   ::= { wifiHotspotBase 1 }
+
+wifiHotspotTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiHotspotEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table used to configure settings related to Wi-fi Hotspot."
+    ::= { wifiHotspotBase 2 }
+
+wifiHotspotEntry OBJECT-TYPE
+    SYNTAX      WifiHotspotEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+         "An entry defining the Wi-fi hotspot characteristics of an
+          individual Wi-Fi network interface."
+    INDEX   { wifiHotspotInstance }
+    ::= { wifiHotspotTable 1 }
+
+WifiHotspotEntry ::=
+    SEQUENCE    {
+        wifiHotspotInstance              Integer32,
+        wifiHotspotIf                    INTEGER,
+        wifiHotspotMode                  INTEGER,
+        wifiHotspotCpeIdleTimeout        Unsigned32,
+        wifiHotspotCpeSessionTimeout     Unsigned32,
+        wifiHotspotRadiusAccAddressType  InetAddressType,
+        wifiHotspotRadiusAccAddress      InetAddress,
+        wifiHotspotRadiusAccPort         InetPortNumber,
+        wifiHotspotRadiusAccKey          DisplayString,
+        wifiHotspotPacketFilterMask      Unsigned32,
+        wifiHotspotInsertDhcpOptionsMask Unsigned32,
+        wifiHotspotRowStatus             RowStatus,
+        wifiHotspotRadiusAccInterimInterval Unsigned32
+    }
+
+wifiHotspotInstance    OBJECT-TYPE
+    SYNTAX      Integer32(1..128)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The key for a unique instance of this object."
+    ::= { wifiHotspotEntry 1 }
+
+wifiHotspotIf OBJECT-TYPE
+    SYNTAX      INTEGER {
+                        wifi1-0(1),
+                        wifi1-1(2),
+                        wifi1-2(3),
+                        wifi1-3(4),
+                        wifi1-4(5),
+                        wifi1-5(6),
+                        wifi1-6(7),
+                        wifi1-7(8),
+                        wifi2-0(9),
+                        wifi2-1(10),
+                        wifi2-2(11),
+                        wifi2-3(12),
+                        wifi2-4(13),
+                        wifi2-5(14),
+                        wifi2-6(15),
+                        wifi2-7(16)
+        }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Wi-fi network interface."
+    ::= { wifiHotspotEntry 2 }
+
+wifiHotspotMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                disable(1),
+                enableBridge(2),
+                enableL2oGre(3)
+    }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Wi-fi Hotsot mode:
+         enableBridge - Wi-Fi traffic will be bridged
+         enableL2oGre - Wi-Fi traffic will be sent over GRE tunnel.
+                        GRE Tunnel should be configured and enabled."
+    ::= { wifiHotspotEntry 3 }
+
+wifiHotspotCpeIdleTimeout OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "CPE inactivity/idle timeout in seconds which will trigger disconnect.
+         Value of 0 will disable inactivity tracking."
+    ::= { wifiHotspotEntry 4 }
+
+wifiHotspotCpeSessionTimeout OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "CPE maximum session duration timeout in seconds.
+         Value of 0 will disable tracking session duration."
+    ::= { wifiHotspotEntry 5 }
+
+wifiHotspotRadiusAccAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for wifiHotspotRadiusAccAddress."
+    ::= { wifiHotspotEntry 6 }
+
+wifiHotspotRadiusAccAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The internet address of the RADIUS Accounting server for this service set."
+    ::= { wifiHotspotEntry 7 }
+
+wifiHotspotRadiusAccPort OBJECT-TYPE
+    SYNTAX      InetPortNumber
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The UDP port used to communicate with the RADIUS Accounting server.
+         Default value set to 1813."
+    ::= { wifiHotspotEntry 8 }
+
+wifiHotspotRadiusAccKey OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The RADIUS Accounting server shared security key."
+    ::= { wifiHotspotEntry 9 }
+
+wifiHotspotPacketFilterMask OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Bit mask for limiting traffic to certain packet types.
+         Possible value:
+         11111111 11111111 11111111 11111111: Allow All traffic
+         xxxxxxxx xxxxxxxx xxxxxxxx xxxxxxx1: Allow IPv4 (0x0800) packets
+         xxxxxxxx xxxxxxxx xxxxxxxx xxxxxx1x: Allow IPv6 (0x86dd) packets
+         xxxxxxxx xxxxxxxx xxxxxxxx xxxxx1xx: Allow IPx  (0x8137) packets
+         xxxxxxxx xxxxxxxx xxxxxxxx xxxx1xxx: Allow ARP  (0x0806) packets
+         xxxxxxxx xxxxxxxx xxxxxxxx xxx1xxxx: Allow RARP (0x8035) packets
+         xxxxxxxx xxxxxxxx xxxxxxxx xx1xxxxx: Allow VLAN (0x8100) packets
+         xxxxxxxx xxxxxxxx xxxxxxx1 xxxxxxxx: Allow Broadcast packets in DS
+         xxxxxxxx xxxxxxxx xxxxxx1x xxxxxxxx: Allow Broadcast packets in US
+         xxxxxxxx xxxxxxxx xxxxx1xx xxxxxxxx: Allow Multicast packets in DS
+         xxxxxxxx xxxxxxxx xxxx1xxx xxxxxxxx: Allow Multicast packets in US
+         "
+    ::= { wifiHotspotEntry 10 }
+
+wifiHotspotInsertDhcpOptionsMask OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Bit mask for inserting DHCP options in DHCP Discover/Request packet from
+         connected wifi client device.
+         Possible value:
+           0x1: Insert DHCP relay agent option 82.
+                circuit-id sub-option: AP-MAC-ADDRESS;SSID-NAME;SSID-TYPE
+           0x2: Insert DHCP relay agent option 82.
+                remote-id  sub-option: String containing MAC address of connected
+                                       wifi client device in the format XX:XX:XX:XX:XX:XX.
+           0x4: Insert/Modify DHCP option 60 with string containing SSID Name.
+         0x100: if DHCP relay agent option 82 is present, delimiter set to null
+         0x200: if DHCP relay agent option 82 is present, and SSID is open, append '0',
+                                       if it is closed append '1'"
+    ::= { wifiHotspotEntry 11 }
+
+wifiHotspotRowStatus OBJECT-TYPE
+    SYNTAX RowStatus
+    MAX-ACCESS read-create
+    STATUS current
+    DESCRIPTION
+        "The RowStatus interlock for the creation and deletion
+        can be modified at any time while the row is active(1)."
+    ::= { wifiHotspotEntry 12 }
+
+wifiHotspotRadiusAccInterimInterval OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Setting to control interval between each RADIUS interim update in seconds.
+        Feature may be disabled by setting to zero, else minimum value is 60"
+    ::= { wifiHotspotEntry 13 }
+
+wifiHotspotAutRateLimit OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Authentication rate limit in messages per second. If client exceeds
+         this limit, authentication from the client is ignored for
+         wifiHotspotAutDenialTimeout."
+   ::= { wifiHotspotBase 3 }
+
+wifiHotspotAutDenialTimeout OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Timeout in seconds during which authentication from a client is ignored
+         once authentication message rate exceeds wifiHotspotAutRateLimit."
+   ::= { wifiHotspotBase 4 }
+
+wifiHotspotRadiusOrigIf OBJECT-TYPE
+    SYNTAX      INTEGER {
+                eRouter(1),
+                cm(2)
+        }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Originating interface of radius authentication and accounting traffic."
+    ::= { wifiHotspotBase 5 }
+
+wifiHotspotIgnoreMaxCpeSetting OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This setting is applicable for wifi hotspot bridged mode.
+         When set to true(1), clients connected through the hotspot wifi will not be
+         counted when enforcing the 'Maximum CPE devices' on DOCSIS."
+   ::= { wifiHotspotBase 6 }
+
+wifiHotspotDisablePMKCaching OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable WPA2 PMK Caching."
+   ::= { wifiHotspotBase 7 }
+
+wifiHotspotConnectionSpeedMin OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Minimum connection speed in kbps required by client to maintain connectivity."
+   ::= { wifiHotspotBase 8 }
+
+wifiHotspotConnectionSpeedTimeout OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Timeout in seconds during which client is allowed to maintain connectivity
+         once connection speed is below wifiHotspotConnectionSpeedMin. When timeout
+         expires client is disassociated."
+   ::= { wifiHotspotBase 9 }
+
+wifiHotspotClientTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiHotspotClientEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table provides status information of connected Home Hotspot Clients."
+    ::= { wifiHotspotBase 10 }
+
+wifiHotspotClientEntry OBJECT-TYPE
+    SYNTAX      WifiHotspotClientEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry in this table provides status information of each connected
+        Home Hotspot Client."
+    INDEX { wifiHotspotClientMacAddress }
+    ::= { wifiHotspotClientTable 1 }
+
+-- add HOSTNAME in here, or leave it as one of the addresses?
+WifiHotspotClientEntry ::=
+    SEQUENCE {
+        wifiHotspotClientMacAddress     MacAddress,
+        wifiHotspotClientHostName       DisplayString,
+        wifiHotspotClientRssi           Integer32,
+        wifiHotspotClientLastDhcpMsg    INTEGER,
+        wifiHotspotClientHotspotIf      INTEGER
+        }
+
+wifiHotspotClientMacAddress OBJECT-TYPE
+    SYNTAX        MacAddress
+    MAX-ACCESS    not-accessible
+    STATUS        current
+    DESCRIPTION
+        "This is the wlan MAC Address of the client"
+    ::= { wifiHotspotClientEntry 2 }
+
+wifiHotspotClientHostName   OBJECT-TYPE
+    SYNTAX      DisplayString ( SIZE (0..255) )
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "The Hostname of the Wifi Hotspot Client."
+    ::= { wifiHotspotClientEntry 3 }
+
+wifiHotspotClientRssi OBJECT-TYPE
+    SYNTAX        Integer32(-128..127)
+    UNITS         "dBm"
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "The Received signal strength indication of the most recently received
+        packet from this client, from the antenna with the strongest signal"
+    ::= { wifiHotspotClientEntry 4 }
+
+
+
+wifiHotspotClientLastDhcpMsg OBJECT-TYPE
+    SYNTAX        INTEGER {
+                        none(0),
+                        discover(1),
+                        offer(2),
+                        request(3),
+                        decline(4),
+                        ack(5),
+                        nak(6),
+                        release(7),
+                        inform(8)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "The most recently seen DHCPv4 Message sent to / from this client."
+    ::= { wifiHotspotClientEntry 5 }
+
+wifiHotspotClientHotspotIf OBJECT-TYPE
+    SYNTAX      INTEGER {
+                        wifi1-0(1),
+                        wifi1-1(2),
+                        wifi1-2(3),
+                        wifi1-3(4),
+                        wifi1-4(5),
+                        wifi1-5(6),
+                        wifi1-6(7),
+                        wifi1-7(8),
+                        wifi2-0(9),
+                        wifi2-1(10),
+                        wifi2-2(11),
+                        wifi2-3(12),
+                        wifi2-4(13),
+                        wifi2-5(14),
+                        wifi2-6(15),
+                        wifi2-7(16)
+        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Wi-fi network interface that this client is associated on."
+    ::= { wifiHotspotClientEntry 6 }
+
+
+wifiHotspotClientAddressTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiHotspotClientAddressEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "This table provides addresses associated with connected Home Hotspot
+        Clients."
+    ::= { wifiHotspotBase 11 }
+
+wifiHotspotClientAddressEntry OBJECT-TYPE
+    SYNTAX      WifiHotspotClientAddressEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Each entry in this table provides one address associated with a
+        Home Hotspot client"
+    INDEX { wifiHotspotClientMacAddress, wifiHotspotClientAddressIndex }
+    ::= { wifiHotspotClientAddressTable 1 }
+
+WifiHotspotClientAddressEntry ::=
+    SEQUENCE {
+        wifiHotspotClientAddressIndex          Integer32,
+        wifiHotspotClientAddressAddressType    InetAddressType,
+        wifiHotspotClientAddressAddress        InetAddress
+        }
+
+wifiHotspotClientAddressIndex OBJECT-TYPE
+    SYNTAX        Integer32(1..128)
+    MAX-ACCESS    not-accessible
+    STATUS        current
+    DESCRIPTION
+        "This is index of this address for this client."
+    ::= { wifiHotspotClientAddressEntry 1 }
+
+wifiHotspotClientAddressAddressType OBJECT-TYPE
+    SYNTAX        InetAddressType
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "The type of Internet address stored in this entry"
+    ::= { wifiHotspotClientAddressEntry 2 }
+
+wifiHotspotClientAddressAddress OBJECT-TYPE
+    SYNTAX        InetAddress
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "The Internet address itself for this entry. Possible examples are the
+        client DHCP lease IPv4 address, autoconfigured IPv6 address, etc."
+    ::= { wifiHotspotClientAddressEntry 3 }
+
+END
+

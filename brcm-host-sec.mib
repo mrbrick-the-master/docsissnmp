@@ -1,0 +1,227 @@
+--****************************************************************************
+--
+-- Copyright (c) 2011-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-host-sec.mib
+--    Author:   Maurice Turcotte
+--    Creation Date: 21 JAN 2011
+--
+--****************************************************************************
+--    Description:
+--
+--      private MIB for host security management
+--
+--****************************************************************************
+--    Revision History:
+--
+--****************************************************************************
+
+BRCM-HOST-SEC-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Integer32
+        FROM SNMPv2-SMI
+    RowStatus,
+    DisplayString
+        FROM SNMPv2-TC
+    OBJECT-GROUP,
+    MODULE-COMPLIANCE
+        FROM SNMPv2-CONF
+    SnmpAdminString
+        FROM SNMP-FRAMEWORK-MIB
+    cableDataMgmtMIBObjects
+        FROM BRCM-CABLEDATA-MGMT-MIB;
+
+brcmHostSecurityMgmt MODULE-IDENTITY
+    LAST-UPDATED "201406240000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "    BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    
+    DESCRIPTION
+        "MIB Module for defining host security objects."
+    REVISION      "201406240000Z"
+    DESCRIPTION
+        "Fixed dates."
+    REVISION      "201202150000Z"
+    DESCRIPTION
+        "Clean up of some DESCRIPTION clauses."
+    REVISION      "201101210000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cableDataMgmtMIBObjects 16 }
+    
+brcmHostSecurityTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF BrcmHostSecurityEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table containing security information for the host  
+         console in this system.  An entry in this table 
+         corresponds to a user instance."
+    ::= { brcmHostSecurityMgmt 1 }
+
+brcmHostSecurityEntry OBJECT-TYPE
+    SYNTAX      BrcmHostSecurityEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the attributes of a single 
+         user in the host software."
+    INDEX  { brcmHostSecIndex }  
+    ::= { brcmHostSecurityTable 1 }
+
+BrcmHostSecurityEntry ::=
+    SEQUENCE {
+             brcmHostSecIndex                    Integer32,
+             brcmHostSecUsername                 DisplayString,
+             brcmHostSecPassword                 SnmpAdminString,
+             brcmHostSecLevel                    Integer32,
+             brcmHostSecStatus                   RowStatus
+             }
+
+brcmHostSecIndex OBJECT-TYPE
+        SYNTAX      Integer32 (0..32)
+        MAX-ACCESS  not-accessible
+        STATUS      current
+        DESCRIPTION
+            "This object uniquely identifies the security information
+             that pertains to this row in the brcmHostSecurityTable.
+             The value of this object is context sensitive, that
+             is, this value has meaning, but that meaning is known
+             by the managed system and is outside the scope of this
+             document."
+        ::= { brcmHostSecurityEntry 1 }
+
+brcmHostSecUsername OBJECT-TYPE
+        SYNTAX      DisplayString (SIZE (0..16))
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "A user name."
+        ::= { brcmHostSecurityEntry 2 }
+
+brcmHostSecPassword OBJECT-TYPE
+        SYNTAX      SnmpAdminString
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The password associated with this row. 
+             If the value of this object is the 
+             zero-length string, then no password 
+             is required on the host system for this
+             user."
+        ::= { brcmHostSecurityEntry 3 }
+
+brcmHostSecLevel OBJECT-TYPE
+        SYNTAX      Integer32
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "The security level of brcmHostSecUsername. Note that
+             the meaning of this value is system dependent."
+        DEFVAL { 0 }
+        ::= { brcmHostSecurityEntry 4 }
+
+brcmHostSecStatus OBJECT-TYPE
+        SYNTAX      RowStatus
+        MAX-ACCESS  read-create
+        STATUS      current
+        DESCRIPTION
+            "Controls and reflects the status of rows in this table. Rows in this
+             table may be created by either the create-and-go or create-and-wait
+             paradigms. Setting the value of this object to active, either directly 
+             or indirectly via create-and-go, will cause the row to be written to 
+             the host security system. It is expected that as soon as the row is 
+             written to the host security system, the row may be made unavailable 
+             to management. This may be done by removing the entry from the table,
+             removing the entry from all views, or rendering the entry inaccessible
+             via some other mechanism."
+        ::= { brcmHostSecurityEntry 5 }
+
+--
+-- Conformance definitions
+--
+brcmHostSecurityConformance      OBJECT IDENTIFIER ::= { brcmHostSecurityMgmt 100 }
+
+--
+-- Compliance Statements
+--
+brcmHostSecurityCompliances  OBJECT IDENTIFIER ::= { brcmHostSecurityConformance 1 }
+brcmHostSecurityGroups       OBJECT IDENTIFIER ::= { brcmHostSecurityConformance 2 }
+
+brcmHostSecurityCompliance  MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "The compliance statement for cablemodem devices."
+    MODULE
+    MANDATORY-GROUPS {
+               brcmHostSecurityGroup
+    }
+    ::= { brcmHostSecurityCompliances 1 }
+         
+brcmHostSecurityGroup OBJECT-GROUP
+    OBJECTS {
+        brcmHostSecUsername,
+        brcmHostSecPassword,
+        brcmHostSecLevel,
+        brcmHostSecStatus
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support host security configuration."
+    ::= { brcmHostSecurityGroups 1 }
+
+END

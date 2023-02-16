@@ -1,0 +1,1297 @@
+--****************************************************************************
+--
+-- Copyright (c) 2003-2015 Broadcom Corporation 
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-bfc-mgmt.mib
+--    Author:   Kevin O'Neal
+--    Creation Date: 4-december-2003
+--
+--****************************************************************************
+--    Description:
+--
+--		private MIB for runtime (not factory) BFC management
+--		
+--****************************************************************************
+--    Revision History:
+--
+--****************************************************************************
+
+BRCM-BFC-MGMT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-IDENTITY,
+    OBJECT-TYPE,
+    Integer32,
+    Unsigned32,
+    Gauge32,
+    Counter32
+        FROM SNMPv2-SMI
+    DisplayString,
+    AutonomousType,
+    DateAndTime,
+    TruthValue
+        FROM SNMPv2-TC
+    cableDataMgmtMIBObjects
+        FROM BRCM-CABLEDATA-MGMT-MIB;
+                
+bfcMgmt MODULE-IDENTITY
+    LAST-UPDATED "201504020000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "	BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for runtime management of objects common
+         to the BFC software architecture."
+    REVISION      "201504020000Z"
+    DESCRIPTION
+        "Added new group bfcMbufAndCluster with Mbuffer and clusters statistics"
+    REVISION      "201503250000Z"
+    DESCRIPTION
+        "Added new group bfcMemory with new memory statistics. 
+        Also deprecated existing memory objects in favor of new 
+        objects in this group."
+    REVISION      "201412170000Z"
+    DESCRIPTION
+        "New memory fragmentation description added."
+    REVISION      "201304190000Z"
+    DESCRIPTION
+        "Added new object bfcChipTemperature."
+    REVISION      "201304150000Z"
+    DESCRIPTION
+        "Added new group bfcFreePoolManager."
+    REVISION      "201110040000Z"
+    DESCRIPTION
+        "Added new object identifier for bfcSystemSnmpSetEvent."
+    REVISION      "201104200000Z"
+    DESCRIPTION
+        "Changed syntax of bfcEventText and bfcEventLogTransientEvent from
+         OCTET STRING to DisplayString.  The DisplayString syntax is more
+         convenient to use with many SNMP tools and libraries."
+    REVISION      "201002010000Z"
+    DESCRIPTION
+        "Added object bfcEventLogTransientEvent"
+    REVISION      "200908260000Z"
+    DESCRIPTION
+        "Added objects bfcMemoryAvailable, bfcMemoryLargestBlock, 
+         bfcMemoryLowWater, and bfcMemoryFragmentation."
+    REVISION      "200906300000Z"
+    DESCRIPTION
+        "Added objects bfcSwImageName and bfcSwImagePath."
+    REVISION      "200806300000Z"
+    DESCRIPTION
+        "Added group bfcEventLog."
+    REVISION      "200702050000Z"
+    DESCRIPTION
+        "Module description was updated. 
+         Compilability issues were cleaned up: 
+         - Chronological order of revision history was corrected.
+         - Range restriction was added to object bfcAppIndex."
+    REVISION      "200609050000Z"
+    DESCRIPTION
+        "Added object bfcSerialConsoleMode."
+    REVISION      "200505050000Z"
+    DESCRIPTION
+        "Added object bfcSwNumBoots."        
+    REVISION      "200312040000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cableDataMgmtMIBObjects 9 }
+    
+bfcMgmtBase OBJECT IDENTIFIER ::= { bfcMgmt 1 }
+
+bfcSoftware OBJECT IDENTIFIER ::= { bfcMgmtBase 1 }
+
+-- Global system information.
+
+bfcSwDateTime  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The date and time that this image was built."
+    ::= { bfcSoftware 1 }
+
+bfcSwBuiltBy  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The user ID of the individual who built this image."
+    ::= { bfcSoftware 2 }
+    
+bfcSwOperatingSystem  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the operating system used for this image."
+    ::= { bfcSoftware 3 }
+
+bfcSwSnmpAgent  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of the SNMP agent core used by this image."
+    ::= { bfcSoftware 4 }
+    
+-- bfcApplicationTable includes info for each application component.
+    
+bfcApplicationTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF BfcApplicationEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of BFC system components, or applications.  A BFC system
+         may contain zero or more of these components."
+    ::= { bfcSoftware 5 }
+    
+bfcApplicationEntry OBJECT-TYPE
+    SYNTAX      BfcApplicationEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the characteristics of a single BFC application
+         from this image."
+    INDEX   { bfcAppIndex }
+    ::= { bfcApplicationTable 1 }
+    
+BfcApplicationEntry ::= 
+    SEQUENCE    {
+                bfcAppIndex           Integer32,
+                bfcAppName            DisplayString,
+                bfcAppVersion         DisplayString,
+                bfcAppReleaseState    INTEGER,
+                bfcAppFeatures        DisplayString
+    }
+
+bfcAppIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..128)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Identifies the instance number of this BFC system component."
+    ::= { bfcApplicationEntry 1 }
+    
+bfcAppName OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The name of this BFC system component."
+    ::= { bfcApplicationEntry 2 }
+    
+bfcAppVersion OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The version identifier for this BFC system component."
+    ::= { bfcApplicationEntry 3 }
+    
+bfcAppReleaseState OBJECT-TYPE
+    SYNTAX      INTEGER {
+                release(1),
+                preRelease(2)
+    }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether this BFC system component is has been 
+         officially released, or if this component is in a pre-release state."
+    ::= { bfcApplicationEntry 4 }
+    
+bfcAppFeatures OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Identifies any features in this BFC system component."
+    ::= { bfcApplicationEntry 5 }
+    
+bfcSwNumBoots  OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This object provides a counter of the number of times that the board
+         has booted.  This value is stored in non-volatile memory and is
+         incremented on each boot."
+    ::= { bfcSoftware 6 }
+    
+bfcSwImageName  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The filename of this image."
+    ::= { bfcSoftware 7 }
+    
+bfcSwImagePath  OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The path to the build directory in which this image was built."
+    ::= { bfcSoftware 8 }
+    
+bfcSwBuildCommandLine OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The build command line used to build this image."
+    ::= { bfcSoftware 9 }
+    
+bfcSwBuildYesNoOptions OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (0..4096))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The YesNo build options used to build this image."
+    ::= { bfcSoftware 10 }
+    
+--
+-- General system level settings
+--    
+    
+bfcSystem OBJECT IDENTIFIER ::= { bfcMgmtBase 2 }
+    
+bfcSerialConsoleMode  OBJECT-TYPE
+    SYNTAX      INTEGER {
+                disabled(0),
+                readOnly(1),
+                readWrite(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls the operation of the serial console on this device.  If set
+         to disabled(0), serial console input and output will be disabled.  If
+         set to readOnly(1), serial console output will be enabled but input 
+         will be disabled.  If set to readWrite(2), both serial input and 
+         output will be enabled."
+    ::= { bfcSystem 1 }
+    
+bfcMemoryAvailable  OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "Bytes"
+    MAX-ACCESS  read-only
+    STATUS      deprecated
+    DESCRIPTION
+        "The amount, in bytes, of total RAM currently available to the system
+         heap. This object has been deprecated in favor of object bfcFreeMemory."
+    ::= { bfcSystem 2 }
+
+bfcMemoryLargestBlock  OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "Bytes"
+    MAX-ACCESS  read-only
+    STATUS      deprecated
+    DESCRIPTION
+        "The size, in bytes, of the largest contiguous block of memory
+         currently available in the system heap. This object has been 
+         deprecated in favor of object bfcLargestMemoryBlock."
+    ::= { bfcSystem 3 }
+    
+bfcMemoryLowWater  OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "Bytes"
+    MAX-ACCESS  read-only
+    STATUS      deprecated
+    DESCRIPTION
+        "The amount, in bytes, of system heap available at the point in time
+         at which the most memory was in use since system boot. This object 
+         has been deprecated in favor of object bfcLowWaterMemory."
+    ::= { bfcSystem 4 }
+
+bfcMemoryFragmentation  OBJECT-TYPE
+    SYNTAX      Integer32 (0..100)
+    UNITS       "percent"
+    MAX-ACCESS  read-only
+    STATUS      deprecated
+    DESCRIPTION
+        "This object has been deprecated in favor of object bfcFragmentationMemoryRatio.
+         A measure of the extent to which system heap is fragmented.  This
+         value is calculated from the total heap available and the sum of the
+         largest blocks of heap available in the following way:
+         
+            Fragmentation = 100 * (1 - Sum(LargestFreeBytes) / TotalFreeBytes
+        
+         Where:
+            LargestFreeBytes = largest free byte blocks of memory
+            TotalFreeBytes   = current total of free memory in bytes
+            
+         To calculate the sum:
+            We take the total number of memory regions we have and add up that
+            number of top free memory blocks.
+
+         Example:
+
+         Memory regions                               : 2
+         Top Memory Blocks in decending order in bytes: 154203, 105332, 523, ...
+         Total Free memory in bytes                   : 350kB
+
+         Calculation of Fragmented memory:
+
+         100 * (1.0 - ((154203+105332) / 350000)) = 26% 
+
+         Thus if the sum of the largest blocks available is equal to the total 
+         amount of memory available, fragmentation would be said to equal 0%.  
+         Fragmentation increases as the ratio of the sum of the largest available
+         blocks to total memory available decreases."
+    ::= { bfcSystem 5 }
+
+bfcFreePoolManager  OBJECT IDENTIFIER ::= { bfcSystem 6 }
+
+bfcFpmBufferSizeBytes  OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "Bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size, in bytes, of each individual FPM buffer.  Each FPM token can
+         consist of one to four such buffers."
+    ::= { bfcFreePoolManager 1 }
+
+bfcFpmMaxTokens  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The maximum number of tokens available in the free pool."
+    ::= { bfcFreePoolManager 2 }
+
+bfcFpmSingleBufferTokensUsed  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of currently allocated tokens which consist of a single
+         FPM buffer."
+    ::= { bfcFreePoolManager 3 }
+
+bfcFpmDoubleBufferTokensUsed  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of currently allocated tokens which consist of two FPM
+         buffers."
+    ::= { bfcFreePoolManager 4 }
+
+bfcFpmTripleBufferTokensUsed  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of currently allocated tokens which consist of three FPM
+         buffers."
+    ::= { bfcFreePoolManager 5 }
+
+bfcFpmQuadBufferTokensUsed  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of currently allocated tokens which consist of four FPM
+         buffers."
+    ::= { bfcFreePoolManager 6 }
+    
+bfcFpmBaseAddress  OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The hardware base address of the FPM register set."
+    ::= { bfcFreePoolManager 7 }
+
+bfcFpmBaseAddressDDR  OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The physical base address of free pool memory in DDR RAM. The memory 
+         block should be the number of buffers times the buffer size. This is 
+         mainly used for multi-pool memory configuration."
+    ::= { bfcFreePoolManager 8 }
+
+bfcFpmTotalConfiguredMemorySizeBytes  OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "Bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size of the free memory pool memory in RAM. The value of this 
+         object should be equal to the value of bfcFpmBufferSizeBytes multiplied
+         by the value of bfcFpmMaxTokens."
+    ::= { bfcFreePoolManager 9 }
+
+bfcFpmFreeFifoFull  OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether the FPM free FIFO is currently full."
+    ::= { bfcFreePoolManager 10 }
+
+bfcFpmFreeFifoEmpty  OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether the FPM free FIFO is currently empty."
+    ::= { bfcFreePoolManager 11 }
+
+bfcFpmAllocFifoFull  OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether the FPM alloc FIFO is currently full."
+    ::= { bfcFreePoolManager 12 }
+
+bfcFpmAllocFifoEmpty  OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates whether the FPM alloc FIFO is currently empty."
+    ::= { bfcFreePoolManager 13 }
+
+bfcFpmTokensAvailable  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of FPM tokens which are currently available for
+         allocation.  This provides a count of number of free tokens that 
+         available for allocation in the usage array. This value is updated 
+         instantaneously as tokens are allocated or freed from the array. "
+    ::= { bfcFreePoolManager 14 }
+
+bfcFpmNotValidTokenFrees  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Count of de-allocate token requests made during any period of time in
+         which the index out-of-range condition is asserted.  The value of this 
+         object should always be greater than or equal to the value of the 
+         bfcFpmFreeTokenNoValidIrqs object, because it is possible to have
+         multiple requests made during a condition which has been indicated by
+         a single interrupt."
+    ::= { bfcFreePoolManager 15 }
+
+bfcFpmNotValidTokenMulti  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Count of multicast token update requests made during any period of time
+         in which the invalid token condition is asserted.  The value of this 
+         object should always be greater than or equal to the value of the 
+         bfcFpmMultiTokenNoValidIrqs object, because it is possible to have
+         multiple requests made during a condition which has been indicated by
+         a single interrupt."
+    ::= { bfcFreePoolManager 16 }
+
+bfcFpmOverflows  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Count of free pool overflows. An overflow condition occurs when pool is 
+         empty, ie., no tokens are allocated and free/mcast request is 
+         encountered.  When the counter values reaches maximum count, it will 
+         hold the max value and not increment."
+    ::= { bfcFreePoolManager 17 }
+
+bfcFpmUnderflows  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Count of free pool underflows. An underflow condition occurs when pool 
+         is full, ie., there are no free tokens and a allocation request is 
+         encountered.  When the counter values reaches maximum count, it will 
+         hold the max value and not increment."
+    ::= { bfcFreePoolManager 18 }
+
+bfcFpmIllegalAllocRequestIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the illegal token request interrupt
+         has been asserted.  This interrupt is asserted when index memory is
+         fully allocated and there is a request for new token."
+    ::= { bfcFreePoolManager 19 }
+
+bfcFpmIllegalAddressAccessIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the illegal/un-implemented 
+         register/memory space access interrupt has been asserted.  This will be
+         asserted when there is an attempt to read from an unimplemented 
+         register or memory space."
+    ::= { bfcFreePoolManager 20 }
+
+bfcFpmXonStateIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the XonState status interrupt has 
+         been asserted.  This interrupt is asserted when the number of available 
+         tokens is greater than or equal to XON_THRESHOLD value in XON/XOFF 
+         Threshold configuration register. This is a functional status counter, 
+         not an error counter. Using this information FPM generates 
+         'backpressure' output signal that is used by other UBUS client logics 
+         to throttle its operation. For example, UNIMAC logic can use 
+         'backpressure' signal to transfer 'PAUSE' Ethernet flow control packets 
+         to throttle incoming frames on Ethernet interface."
+    ::= { bfcFreePoolManager 21 }
+
+bfcFpmXoffStateIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the XoffState status interrupt has
+         been asserted.  This interrupt is asserted when the number of available 
+         tokens is less than or equal to XOFF_THRESHOLD value in XON/XOFF 
+         Threshold configuration register.  This is a functional status counter, 
+         not an error counter. Using this information FPM generates 'backpressure' 
+         output signal that is used by other UBUS client logics to throttle its 
+         operation. For example, UNIMAC logic can use 'backpressure' signal to 
+         transfer 'PAUSE' Ethernet flow control packets to throttle incoming 
+         frames on Ethernet interface."
+    ::= { bfcFreePoolManager 22 }
+
+bfcFpmMemoryCorruptionIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the index memory corrupt interrupt
+         has been asserted.  During updates of the usage array, token manager 
+         checks if the use count and search tree value in the array has a legal 
+         value. If the use count or search tree value is not correct before 
+         updating, logic generates an error and interrupt. As long as the 
+         interrupt is active no more valid tokens will be allocated because this 
+         is a catastrophic error. Following are the two error conditions that
+         are checked - 
+
+         1. During search for a free token, a particular token use count value 
+            indicates it is allocated (use count is greater than 0), but 
+            corresponding upper level search tree value indicates the token is 
+            still available (with bit value of 1'b0, instead of 1'b1). This is 
+            an error. 
+
+         2. During search for a free token, a particular token use count value 
+            indicates that it is free (use count is 0), but corresponding upper 
+            level search tree value indicates the token is not available (with 
+            bit value of 1'b1, instead of 1'b0). This is an error."
+    ::= { bfcFreePoolManager 23 }
+
+bfcFpmPoolDisFreeMultiIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the Free or Mcast update on disabled 
+         pool interrupt has been asserted.  This interrupt is asserted when a 
+         free or multi-cast request was received and FPM is not enabled, i.e., 
+         pool enable bit in FPM control register is not set to 1'b1."
+    ::= { bfcFreePoolManager 24 }
+
+bfcFpmMultiTokenIndexOutOfRangeIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the token multi-cast value update 
+         request with index out-of-range interrupt has been asserted.  This 
+         interrupt is asserted when a token multi-cast value update request is 
+         performed with index out-of-range.  This is determined by checking the  
+         pool select field (bits[29:28]) in the incoming multi-cast token is  
+         greater than zero."
+    ::= { bfcFreePoolManager 25 }
+
+bfcFpmMultiTokenNoValidIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the token multi-cast value update 
+         request with invalid token interrupt has been asserted.  This interrupt
+         is asserted when one or more the following conditions are met - 
+
+         1. Incoming multi-cast request token has valid bit (bit[31]) set to 1'b0 
+
+         2. Incoming multi-cast request token has pool select field (bit[29:28) 
+            is not equal to 2'b00 
+
+         3. Incoming multi-cast request token has use count field (bit[3:0]) set 
+            to zero 
+
+         4. Incoming multi-cast request update type (bit[11]) is set to 
+            'increment type' and use count field (bit[6:0]) is set to 0xF 
+
+         5. Incoming multi-cast request token entry in the usage array indicates 
+            it is not an allocated token, i.e., associated use count value for 
+            this count in the usage array is zero 
+
+         6. After updating the use count value, the new use count value 
+            exceeds 0xF"
+    ::= { bfcFreePoolManager 26 }
+
+bfcFpmFreeTokenIndexOutOfRangeIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the de-allocation token request with 
+         index out-of-range interrupt has been asserted.  This interrupt is
+         asserted when a token de-allocation value update request is performed 
+         with index out-of-range.  This is determined by checking the pool 
+         select field (bits[29:28]) in the incoming free token is greater 
+         than zero."
+    ::= { bfcFreePoolManager 27 }
+
+bfcFpmFreeTokenNoValidIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the de-allocation token request with 
+         index out-of-range interrupt has been asserted.
+
+         Invalid free token is determined when one or more the following 
+         conditions are met - 
+
+         1. Incoming free request token has valid bit (bit[31]) set to 1'b0 
+
+         2. Incoming free request token has pool select field (bit[29:28) is not 
+            equal to 2'b00 
+
+         3. Incoming free request token entry in the usage array indicates it is 
+            not an allocated token, i.e., associated use count value for this 
+            count in the usage array is zero "
+    ::= { bfcFreePoolManager 28 }
+
+bfcFpmPoolFullIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the usage index pool is fully 
+         allocated interrupt has been asserted.  This is a functional status 
+         counter, not an error counter. This indicates that token pool was fully 
+         allocated and there were no free tokens available.  The counter will 
+         increment one time for each interrupt, regardless of how long the 
+         condition persists.  This counter is intended to be used for debug 
+         purpose only."
+    ::= { bfcFreePoolManager 29 }
+    
+bfcFpmPool1EmptyIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the pool 1 is completely allocated 
+         interrupt has been asserted. This is a functional status counter, not 
+         an error counter. This indicates that the token pool is fully allocated 
+         and there are no free tokens available. The counter will increment one
+         time for each interrupt, regardless of how long the condition persists.
+         This bit is intended to be used for debug purpose only."
+    ::= { bfcFreePoolManager 30 }
+
+bfcFpmPool2EmptyIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the pool 2 is completely allocated 
+         interrupt has been asserted. This is a functional status counter, not 
+         an error counter. This indicates that the token pool is fully allocated 
+         and there are no free tokens available. The counter will increment one
+         time for each interrupt, regardless of how long the condition persists.
+         This bit is intended to be used for debug purpose only."
+    ::= { bfcFreePoolManager 31 }
+
+bfcFpmPool3EmptyIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the pool 3 is completely allocated 
+         interrupt has been asserted. This is a functional status counter, not 
+         an error counter. This indicates that the token pool is fully allocated 
+         and there are no free tokens available. The counter will increment one
+         time for each interrupt, regardless of how long the condition persists.
+         This bit is intended to be used for debug purpose only."
+    ::= { bfcFreePoolManager 32 }
+
+bfcFpmPool4EmptyIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the pool 4 is completely allocated 
+         interrupt has been asserted. This is a functional status counter, not 
+         an error counter. This indicates that the token pool is fully allocated 
+         and there are no free tokens available. The counter will increment one
+         time for each interrupt, regardless of how long the condition persists.
+         This bit is intended to be used for debug purpose only."
+    ::= { bfcFreePoolManager 33 }
+
+bfcFpmFreeFifoFullIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the De-Allocation FIFO Full 
+         Interrupt has been asserted. This is a functional status counter, not 
+         an error counter.  This indicates that de-allocation FIFO is full with 
+         tokens needs to be freed and will be active (high) as long as FIFO is 
+         full. This counter is intended to be used for debug purpose only."
+    ::= { bfcFreePoolManager 34 }
+
+bfcFpmAllocFifoFullIrqs  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times that the Allocation FIFO Full 
+         Interrupt has been asserted. This is a functional status counter, not 
+         an error counter.  This indicates that de-allocation FIFO is full with 
+         tokens needs to be freed and will be active (high) as long as FIFO is 
+         full. This counter is intended to be used for debug purpose only."
+    ::= { bfcFreePoolManager 35 }
+
+bfcFpmWifiAllocFailures  OBJECT-TYPE
+    SYNTAX      Counter32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the number of times the wifi client failed to receive an FPM 
+         buffer due to inadequate buffers available."
+    ::= { bfcFreePoolManager 36 }
+
+bfcChipTemperature OBJECT-TYPE
+   SYNTAX     Integer32
+   UNITS      "degrees Centigrade"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+       "The current die temperature as measured by the chip itself.  This object
+        will not be present on any system for which the chip does not support
+        temperature measurement."
+   ::= { bfcSystem 7 }                                
+
+bfcMemory OBJECT IDENTIFIER ::= { bfcSystem 8 }
+
+bfcTotalMemory OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "bytes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+       "The amount of heap memory available when BcmHeapInitialize() was called. 
+       Each processor should have its own heap statistics."
+   ::= { bfcMemory 1 }
+
+bfcFreeMemory OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "bytes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+       "The amount of memory currently available to the system heap."
+   ::= { bfcMemory 2 }
+
+bfcLargestMemoryBlock OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "bytes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+       "The size, in bytes, of the largest contiguous block of memory
+         currently available in the system heap."
+   ::= { bfcMemory 3 }
+
+bfcLowWaterMemory OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "bytes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The amount, in bytes, of system heap available at the point in time
+         at which the most memory was in use since system boot."
+   ::= { bfcMemory 4 }
+
+bfcFragmentationMemoryRatio  OBJECT-TYPE
+    SYNTAX      Integer32 (0..100)
+    UNITS       "percent"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "A measure of the extent to which system heap is fragmented.  This
+         value is calculated from the total heap available and the sum of the
+         largest blocks of heap available in the following way:
+         
+            Fragmentation = 100 * (1 - Sum(LargestFreeBytes) / TotalFreeBytes
+        
+         Where:
+            LargestFreeBytes = largest free byte blocks of memory
+            TotalFreeBytes   = current total of free memory in bytes
+            
+         To calculate the sum:
+            We take the total number of memory regions we have and add up that
+            number of top free memory blocks.
+
+         Example:
+
+         Memory regions                               : 2
+         Top Memory Blocks in decending order in bytes: 154203, 105332, 523, ...
+         Total Free memory in bytes                   : 350kB
+
+         Calculation of Fragmented memory:
+
+         100 * (1.0 - ((154203+105332) / 350000)) = 26% 
+
+         Thus if the sum of the largest blocks available is equal to the total 
+         amount of memory available, fragmentation would be said to equal 0%.  
+         Fragmentation increases as the ratio of the sum of the largest available
+         blocks to total memory available decreases."
+   ::= { bfcMemory 5 }
+
+bfcNodeSize OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "bytes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The size of each memory node. Number of allocated nodes  = memory requested / node size ."
+   ::= { bfcMemory 6 }
+
+bfcNodesOnFreeList OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "nodes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of memory nodes on the free list."
+   ::= { bfcMemory 7 }
+
+bfcNodesOnAllocList OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "nodes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of memory nodes on the allocation list."
+   ::= { bfcMemory 8 }
+
+bfcAllocFails OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times that an alloc returned NULL because there 
+         wasn't enough memory to satisfy the requested nodes on the allocation list."
+   ::= { bfcMemory 9 }
+
+bfcFreeFails OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times that free was called with an invalid pointer. 
+         Duplicate frees will also fall into this category."
+   ::= { bfcMemory 10 }
+
+bfcAllocsCorrupt OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times that memory corruptions detected during malloc/realloc."
+   ::= { bfcMemory 11 }
+
+bfcFreeCorrupt OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times that memory corruptions were detected during free or realloc."
+   ::= { bfcMemory 12 }
+
+bfcBCheckCorrupt OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times that memory corruptions were detected during bounds check."
+   ::= { bfcMemory 13 }
+
+bfcNodeCorruptRecov OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "nodes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of corrupted nodes found during boundary checks 
+        that could be recovered or fixed."
+   ::= { bfcMemory 14 }
+
+bfcNodeCorruptFatal OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "nodes"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of corrupted nodes found during boundary checks 
+        that could not be recovered or fixed."
+   ::= { bfcMemory 15 }
+
+bfcMbufAndCluster OBJECT IDENTIFIER ::= { bfcSystem 9 }
+
+bfcMbufStats OBJECT IDENTIFIER ::= { bfcMbufAndCluster 1 }
+
+bfcMbufs OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "mbufs"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of mbufs obtained from page pool. An mbuf is a basic
+         buffer unit internally used in eCos. The structure contains a 
+         next pointer so it can be linked to another mbuf. A page pool
+         is a partial memory pool that eCos used to allocate memory 
+         mainly for reused mbufs and clusters."
+   ::= { bfcMbufStats 1 }
+
+bfcMClusters OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "clusters"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of clusters obtained from page pool. A cluster is a
+        group of mbufs that are linked to each other."
+   ::= { bfcMbufStats 2 }
+
+bfcMFreeClusters OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "clusters"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of clusters that are currently available from page pool."
+   ::= { bfcMbufStats 3 }
+
+bfcMFreeMbufs OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "mbufs"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of free mbufs that are currently available from page pool."
+   ::= { bfcMbufStats 4 }
+
+bfcMDrops OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times eCos failed to find space while allocating an mbuffer."
+   ::= { bfcMbufStats 5 }
+
+bfcMWait OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times eCos waited to find space while allocating an mbuffer."
+   ::= { bfcMbufStats 6 }
+
+bfcMDrain OBJECT-TYPE
+   SYNTAX     Gauge32
+   UNITS      "times"
+   MAX-ACCESS read-only
+   STATUS     current
+   DESCRIPTION
+        "The number of times eCos drained protocols for space while allocating an mbuffer."
+   ::= { bfcMbufStats 7 }
+
+bfcMPoolInfo OBJECT IDENTIFIER ::= { bfcMbufAndCluster 2 }
+bfcMBufPoolTotal OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size of total memory for MBufs Pool. MBufs Pool is the total 
+        memory pool that eCos used to allocate memory for MBufs."
+    ::= { bfcMPoolInfo 1 }
+
+bfcMBufPoolFree OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size of available memory for MBufs Pool."
+    ::= { bfcMPoolInfo 2 }
+
+bfcMBufPoolBlocksize OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size of each block for MBufs Pool."
+    ::= { bfcMPoolInfo 3 }
+
+bfcMClusterPoolTotal OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size of total memory for MCluster Pool. MCluster Pool is the total 
+        memory pool that eCos used to allocate memory for MClusters."
+    ::= { bfcMPoolInfo 4 }
+
+bfcMClusterPoolFree OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size of available memory for MCluster Pool."
+    ::= { bfcMPoolInfo 5 }
+
+bfcMClusterPoolBlockSize OBJECT-TYPE
+    SYNTAX      Gauge32
+    UNITS       "bytes"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The size of each basic block for MCluster Pool."
+    ::= { bfcMPoolInfo 6 }
+
+bfcEventLog OBJECT IDENTIFIER ::= { bfcMgmtBase 3 }
+
+--
+-- Values for the bfcEventId field for various events are defined below the
+-- bfcEvents node.  Other values for this field which pertain to specific
+-- devices or systems may be defined in other MIBs as appropriate.
+--
+
+bfcEvents OBJECT IDENTIFIER ::= { bfcEventLog 1 }
+
+bfcSystemEvents OBJECT IDENTIFIER ::= { bfcEvents 1 }
+
+bfcSystemEvent OBJECT-IDENTITY
+    STATUS     current
+    DESCRIPTION
+        "A generic system event - this identity may be used for events which
+         do not have a more specific identity defined."
+    ::= { bfcSystemEvents 1 }
+
+bfcSystemResetEvent OBJECT-IDENTITY
+    STATUS     current
+    DESCRIPTION
+        "An event giving details related to a system reset."
+    ::= { bfcSystemEvents 2 }
+    
+bfcSystemTransientEvent OBJECT-IDENTITY
+    STATUS     current
+    DESCRIPTION
+        "An event which was explicitly logged via management and which is not
+         stored to non-volatile storage."
+    ::= { bfcSystemEvents 3 }
+
+bfcSystemSnmpSetEvent OBJECT-IDENTITY
+    STATUS     current
+    DESCRIPTION
+        "An event which records a successful SNMP set to the device."
+    ::= { bfcSystemEvents 4 }   
+--
+-- The event log is contained within the bfcEventLogTable
+--
+
+bfcEventLogTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF BfcEventLogEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Contains a log of network and device events that may be
+         of interest in fault isolation and troubleshooting."
+    ::= {  bfcEventLog 2 }
+
+bfcEventLogEntry OBJECT-TYPE
+    SYNTAX      BfcEventLogEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Describes a network or device event that may be of
+         interest in fault isolation and troubleshooting.
+         
+         Events are identified by an AutonomousType (OBJECT
+         IDENTIFIER), bfcEventId, to allow a single table to
+         contain events defined in this MIB plus events defined by a
+         particular implementation - for example, as documented in the
+         private enterprise MIB definition for a particular device
+         or system feature.  
+         
+         Although multiple rows may have the same value of bfcEventId,
+         no two such rows will have the same value of bfcEventIndex,
+         allowing for multiple instances of a given event ID to exist
+         in the table simultaneously."
+    INDEX { bfcEventId, bfcEventIndex }
+    ::= { bfcEventLogTable 1 }
+
+BfcEventLogEntry ::= 
+    SEQUENCE       {
+        bfcEventId      AutonomousType,
+        bfcEventIndex   Integer32,
+        bfcEventTime    DateAndTime,
+        bfcEventText    DisplayString
+    }
+        
+bfcEventId OBJECT-TYPE
+    SYNTAX     AutonomousType
+    MAX-ACCESS not-accessible
+    STATUS     current
+    DESCRIPTION
+        "A reference to an object which defines a particular event type.
+         The object referenced should not be accessible, but rather be used 
+         to provide a unique identifier of the event type.  Some such 
+         objects are defined under the bfcEvents node of this MIB. 
+         So as not to exceed that max size of 128 for the Autonomous type, the 
+         EventId OID should be chosen such that it's length does not exceed 
+         109."
+    ::= { bfcEventLogEntry 1 }
+        
+bfcEventIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..2147483647)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Provides relative ordering of the objects in the event log for a given 
+         value of bfcEventId."
+    ::= { bfcEventLogEntry 2 }
+        
+bfcEventTime OBJECT-TYPE
+    SYNTAX      DateAndTime
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The local system time at the time this event was logged."
+    ::= { bfcEventLogEntry 3 }
+        
+bfcEventText OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Provides a description of the event.  The exact nature of the 
+         description depends on the type of event being logged."
+    ::= { bfcEventLogEntry 4 }
+    
+bfcEventLogReset  OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object will clear the contents of the bfcEventLogTable if set to
+         true(1).  Always returns false(2) when read."
+    ::= { bfcEventLog 3 }
+    
+bfcEventLogTransientEvent OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Setting this object will result in an entry being placed into the 
+         bfcEventLogTable with a value of bfcEventId equal to 
+         bfcSystemTransientEvent and a bfcEventText value equal to the value
+         written to this object.  The text will also be logged to the serial 
+         console.  
+         
+         This event will not be written to non-volatile storage and will not 
+         persist across a system reboot.  When read, this object always returns 
+         an empty string."
+    ::= { bfcEventLog 4 }
+
+
+
+
+
+
+END

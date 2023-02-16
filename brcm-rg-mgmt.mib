@@ -1,0 +1,1264 @@
+--****************************************************************************
+--
+-- Copyright (c) 2003-2015 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--
+--
+--**************************************************************************
+--    Filename: brcm-cablehome-mgmt.mib
+--    Author:   Kevin O'Neal
+--    Creation Date: 6-march-2003
+--
+--**************************************************************************
+--    Description:
+--
+--        private MIB for runtime (not factory) CableHome management
+--
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-RG-MGMT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Unsigned32,
+    Integer32
+        FROM SNMPv2-SMI
+    RowStatus,
+    TruthValue,
+    MacAddress,
+    DisplayString
+        FROM SNMPv2-TC
+    cableDataMgmtMIBObjects
+        FROM BRCM-CABLEDATA-MGMT-MIB
+    InetAddressType,
+    InetAddress,
+    InetAddressIPv6,
+    InetAddressPrefixLength
+        FROM INET-ADDRESS-MIB
+    OBJECT-GROUP,
+    MODULE-COMPLIANCE
+        FROM SNMPv2-CONF;
+
+residentialGatewayMgmt MODULE-IDENTITY
+    LAST-UPDATED "201511040000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "    BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadacom proprietary MIB for runtime management of residential gateway
+         devices."
+    REVISION      "201511040000Z"
+    DESCRIPTION
+        "Reading rgResetToFactory always return false, instead of true."  	 
+    REVISION      "201511030000Z"
+    DESCRIPTION
+        "Added rgInterfaceGroupTable.Performed general cleanup to correct
+         out of order text in the MIB file.  Added conformance and compliance
+	 sections."
+    REVISION      "201508250000Z"
+    DESCRIPTION
+        "Added Support For WAN Failover Configuration."	 	 
+    REVISION      "201410280000Z"
+    DESCRIPTION
+        "Added rgeRouterDhcpV6"
+    REVISION      "201407180000Z"
+    DESCRIPTION
+        "Changed rgLldMacAddress to not-accessible for smilint."
+    REVISION      "201304110000Z"
+    DESCRIPTION
+        "Added Unsigned32 to the imports section."
+    REVISION      "201201100000Z"
+    DESCRIPTION
+        "Added rgDsliteIPv4FragEnabled"
+    REVISION      "201111150000Z"
+    DESCRIPTION
+        "Added DS-Lite objects."
+    REVISION      "201007270000Z"
+    DESCRIPTION
+        "Added rgeRouterIpProvMode object."
+    REVISION      "200702050000Z"
+    DESCRIPTION
+        "Module description was updated."
+    REVISION      "200406160000Z"
+    DESCRIPTION
+        "Added object rgVpnEnabled."
+    REVISION      "200303310000Z"
+    DESCRIPTION
+        "Initial version of this MIB module."
+    ::= { cableDataMgmtMIBObjects 7 }
+
+rgMgmtBase OBJECT IDENTIFIER ::= { residentialGatewayMgmt 1 }
+
+rgOperMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                disabled(1),
+                residentialGateway(2),
+                cableHome10(3),
+                cableHome11(4)
+    }
+    MAX-ACCESS  read-write
+    STATUS      deprecated
+    DESCRIPTION
+        "Sets the operational mode of the device with regard to residential
+         gateway behavior."
+    ::= { rgMgmtBase 1 }
+
+rgRipEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable router information protocol support in the device."
+    ::= { rgMgmtBase 2 }
+
+rgVpnEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable virtual private network support in the device."
+    ::= { rgMgmtBase 3 }
+
+rgeRouterIpProvMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                         disabled(1),
+                         ipv4(2),
+                         ipv6(3),
+                         dual(4),
+                         ipv4RG(5)
+              }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Toggles ip provisioning modes for eRouter.
+        Note, override modes are obsolete."
+    ::= { rgMgmtBase 4 }
+
+rgVlanStrip OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+            "This strips VLAN tags from packets."
+    ::= {  rgMgmtBase 5 }
+
+rgVlanTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RgVlanEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "This table contains information specific to VLANs."
+    REFERENCE
+            "CableHome 1.1 Specification, Packet Handling & Address
+            Translation section."
+    ::= {  rgMgmtBase 6 }
+
+rgVlanEntry     OBJECT-TYPE
+    SYNTAX      RgVlanEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "List of individual VLAN entries."
+    INDEX { rgVlanID }
+    ::= { rgVlanTable 1 }
+
+RgVlanEntry ::= SEQUENCE {
+    rgVlanID             Integer32,
+    rgVlanDesc           OCTET STRING,
+    rgVlanEthernet       Integer32,
+    rgVlanWiFi           Integer32,
+    rgVlanMoca           Integer32,
+    rgVlanUSB            Integer32,
+    rgVlanStartAddrType  InetAddressType,
+    rgVlanStartAddr      InetAddress,
+    rgVlanEndAddrType    InetAddressType,
+    rgVlanEndAddr        InetAddress,
+    rgVlanSubnetMaskType InetAddressType,
+    rgVlanSubnetMask     InetAddress,
+    rgVlanRouterIpType   InetAddressType,
+    rgVlanRouterIp       InetAddress,
+    rgVlanLeaseTime      Integer32,
+    rgVlanRouteMode      INTEGER,
+    rgVlanTOS            Integer32,
+    rgVlanFirewall       TruthValue,
+    rgVlanUpnp           TruthValue,
+    rgVlanRowStatus      RowStatus
+}
+
+rgVlanID        OBJECT-TYPE
+    SYNTAX      Integer32  (2..4096)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "The ID of the VLAN Entry."
+    ::= { rgVlanEntry 1 }
+
+rgVlanDesc     OBJECT-TYPE
+    SYNTAX     OCTET STRING (SIZE(0..20))
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+            "Description of this VLAN."
+    ::= { rgVlanEntry 2 }
+
+rgVlanEthernet  OBJECT-TYPE
+    SYNTAX      Integer32  (0..15)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Assigns the Ethernet Port corresponding to the bit set to the VLAN.
+         Bit 0 - Ethernet Port 0.
+         Bit 1 - Ethernet Port 1.
+         Bit 2 - Ethernet Port 2.
+         Bit 3 - Ethernet Port 3."
+    DEFVAL { 0 }
+    ::= { rgVlanEntry 3 }
+
+rgVlanWiFi      OBJECT-TYPE
+    SYNTAX      Integer32  (0..15)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Assigns the WiFi BSSID corresponding to the bit set to the VLAN.
+         Bit 0 - WiFi BSSID Port 0.
+         Bit 1 - WiFi BSSID Port 1.
+         Bit 2 - WiFi BSSID Port 2.
+         Bit 3 - WiFi BSSID Port 3.
+         ...
+         Bit 15 - WiFi BSSID 15."
+    DEFVAL { 0 }
+    ::= { rgVlanEntry 4 }
+
+rgVlanMoca      OBJECT-TYPE
+    SYNTAX      Integer32   (0..1)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "Include Moca on the VLAN."
+    DEFVAL { 0 }
+    ::= { rgVlanEntry 5 }
+
+rgVlanUSB       OBJECT-TYPE
+    SYNTAX      Integer32   (0..1)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "Include USB on the VLAN."
+    DEFVAL { 0 }
+    ::= { rgVlanEntry 6 }
+
+rgVlanStartAddrType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The start IP address range type."
+    DEFVAL { ipv4 }
+    ::= { rgVlanEntry 7 }
+
+rgVlanStartAddr OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The start IP Address range."
+    ::= { rgVlanEntry 8 }
+
+rgVlanEndAddrType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The end IP address range type."
+    DEFVAL { ipv4 }
+    ::= { rgVlanEntry 9 }
+
+rgVlanEndAddr OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The end IP Address range."
+    ::= { rgVlanEntry 10 }
+
+rgVlanSubnetMaskType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The subnet mask type."
+    DEFVAL { ipv4 }
+    ::= { rgVlanEntry 11 }
+
+rgVlanSubnetMask OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The subnet mask."
+    ::= { rgVlanEntry 12 }
+
+rgVlanRouterIpType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The router IP type."
+    DEFVAL { ipv4 }
+    ::= { rgVlanEntry 13 }
+
+rgVlanRouterIp OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The router IP."
+    ::= { rgVlanEntry 14 }
+
+rgVlanLeaseTime    OBJECT-TYPE
+    SYNTAX         Integer32
+    MAX-ACCESS     read-create
+    STATUS         current
+    DESCRIPTION
+       "The lease time for clients of this VLAN."
+    DEFVAL { 3600 }
+    ::= { rgVlanEntry 15 }
+
+rgVlanRouteMode    OBJECT-TYPE
+    SYNTAX         INTEGER  {
+                   napt(1),        -- NAT with Port Translation Mode
+                   bridged (2),    -- Passthrough/Bridging Mode
+                   routeddhcp(3)   -- routed_dhcp
+    }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The route mode for this VLAN."
+    DEFVAL { napt }
+    ::= { rgVlanEntry 16 }
+
+rgVlanTOS       OBJECT-TYPE
+    SYNTAX      Integer32  (0..255)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The TOS for this VLAN."
+    DEFVAL { 0 }
+    ::= { rgVlanEntry 17 }
+
+rgVlanFirewall OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Include the firewall on this VLAN."
+    DEFVAL { 1 }
+    ::= { rgVlanEntry 18 }
+
+rgVlanUpnp OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Include the IGD UPnP on this VLAN."
+    DEFVAL { 1 }
+    ::= { rgVlanEntry 19 }
+rgVlanRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The RowStatus interlock for the creation and deletion
+        of a VLAN entry."
+    ::= { rgVlanEntry 20 }
+
+rgVlanApplySettings OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+            "If set to true(1), the current configuration set in this MIB
+             will be flushed to non-volatile storage, and the VLAN Manager will
+             re-initialize the networks using this configuration.
+
+             Unless this object is explicitly set to true(1), any settings made via
+             other objects in this MIB will be lost if a reboot occurs.
+
+             Always returns false(2) when read."
+    REFERENCE
+            "CableHome 1.1 Specification, Packet Handling & Address
+            Translation section."
+    ::= {  rgMgmtBase 7 }
+
+rgDsliteBase OBJECT IDENTIFIER ::= { rgMgmtBase 8 }
+
+rgDsliteEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable DS-lite support in the device."
+    ::= { rgDsliteBase 1 }
+
+rgDsliteAftrAddress OBJECT-TYPE
+    SYNTAX     InetAddressIPv6
+    MAX-ACCESS read-write
+    STATUS     current
+    DESCRIPTION
+        "IPv6 address of the AFTR endpoint of the DS-lite tunnel."
+    ::= { rgDsliteBase 2 }
+
+rgDslitePcpMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                plain(1),
+                encapsulation(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "PCP (Port Control Protocol) operational mode"
+    DEFVAL { plain }
+    ::= { rgDsliteBase 3 }
+
+rgDsliteTcpMssClamping OBJECT-TYPE
+    SYNTAX      Integer32 (0..1420)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Specifies  whether TCP MSS clamping is enabled on the interface.
+         0 disables clamping, 1 clamps the MSS depending on the
+         interface MTU. A value > 1 will be used as clamping size."
+    DEFVAL { 0 }
+    ::= { rgDsliteBase 4 }
+
+rgDsliteIPv4FragEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable IPv4 fragmentation in DS-Lite"
+    ::= { rgDsliteBase 5 }
+
+rgLowLatencyBase OBJECT IDENTIFIER ::= { rgMgmtBase 9 }
+
+rgLowLatencyEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disable Low Latency service flow in the device."
+    ::= { rgLowLatencyBase 1 }
+
+rgLowLatencyMaxDevices OBJECT-TYPE
+    SYNTAX      Integer32  (1..3)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "The maximum number of devices that can be configured as low latency devices."
+    ::= { rgLowLatencyBase 2 }
+
+rgLowLatencyDscp OBJECT-TYPE
+    SYNTAX      Integer32  (0..63)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+       "The IP header Diffserv Code-Point used for the Low Latency service flow."
+    ::= { rgLowLatencyBase 3 }
+
+rgLowLatencyAllDevicesEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enable Low Latency for all connected consumer devices.  If disabled, Low
+         Latency must be enabled or disabled per connected consumer device."
+    ::= { rgLowLatencyBase 4 }
+
+rgLowLatencyDeviceTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RgLowLatencyDeviceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "This table contains Low Latency configuration information for consumer devices."
+    ::= {  rgLowLatencyBase 5 }
+
+rgLowLatencyDeviceEntry OBJECT-TYPE
+    SYNTAX      RgLowLatencyDeviceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "List of individual Low Latency device entries."
+    INDEX   { rgLldMacAddress }
+    ::= { rgLowLatencyDeviceTable 1 }
+
+RgLowLatencyDeviceEntry ::= SEQUENCE {
+    rgLldMacAddress           MacAddress,
+    rgLldHostName             DisplayString,
+    rgLldIpAddressType        InetAddressType,
+    rgLldIpAddress            InetAddress,
+    rgLldLowLatencyEnabled    TruthValue,
+    rgLldTrafficFlow          TruthValue
+}
+
+rgLldMacAddress OBJECT-TYPE
+    SYNTAX      MacAddress
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "Low Latency Device MAC address."
+    ::= { rgLowLatencyDeviceEntry 1 }
+
+rgLldHostName   OBJECT-TYPE
+    SYNTAX      DisplayString ( SIZE (0..80) )
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Low Latency Device host name."
+    ::= { rgLowLatencyDeviceEntry 2 }
+
+rgLldIpAddressType  OBJECT-TYPE
+    SYNTAX          InetAddressType
+    MAX-ACCESS      read-only
+    STATUS          current
+    DESCRIPTION
+            "Low Latency Device IP address type."
+    DEFVAL { ipv4 }
+    ::= { rgLowLatencyDeviceEntry 3 }
+
+rgLldIpAddress  OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "Low Latency Device IP address."
+    ::= { rgLowLatencyDeviceEntry 4 }
+
+rgLldLowLatencyEnabled OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+            "Low Latency enabled for this device."
+    ::= { rgLowLatencyDeviceEntry 5 }
+
+rgLldTrafficFlow OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Low Latency traffic flow indicator for the device."
+    ::= { rgLowLatencyDeviceEntry 6 }
+
+rgResetToFactory OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+            "If set to true(1), the board will default the DYNAMIC rgNonvol and eRouterNonvol
+            settings back to their default settings.  Reading this value will always return false(2).
+            The sections that are set back to default are
+            rgNonVol, PsNonVOl, eRouterNonVol, FirewallFilterNonVol, Ipv6FirewallNonVol, CdpNonVol,
+            CspNonVol, DhcpV6NonVol."
+    ::= {  rgMgmtBase 10 }
+
+rgFirewall OBJECT IDENTIFIER ::= { rgMgmtBase 11}
+
+rgIPv4Firewall OBJECT-TYPE
+    SYNTAX      INTEGER {
+                disabled(0),
+                low(1),
+                medium(2),
+                high(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Toggles IPv4 Firewall Protection to either disabled, low,
+         medium, or high."
+    ::= { rgFirewall 1 }
+
+rgBlockFragIpPackets OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables blocking of Fragmented IP Packets."
+    ::= { rgFirewall 2 }
+
+rgPortScanDetection OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables Port Scan Detection."
+    ::= { rgFirewall 3 }
+
+rgIPFloodDetection OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables IP Flood Detection."
+    ::= { rgFirewall 4 }
+
+rgIPv6Firewall OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables IPv6 Firewall."
+    ::= { rgFirewall 5 }
+
+rgAdvanced OBJECT IDENTIFIER ::= { rgMgmtBase 12}
+
+rgWanBlocking OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables WAN Blocking."
+    ::= { rgAdvanced 1 }
+
+rgIpsecPassthrough OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables Ipsec Passthrough."
+    ::= { rgAdvanced 2 }
+
+rgPPTPPassthrough OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables PPTP Passthrough."
+    ::= { rgAdvanced 3 }
+
+rgRemoteConfigManagement OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables Remote Configuration Management."
+    ::= { rgAdvanced 4 }
+
+rgMulticastEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables Multicast."
+    ::= { rgAdvanced 5 }
+
+rgUPnPEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables UPnP."
+    ::= { rgAdvanced 6 }
+
+rgPrimaryNetworkBridged OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables Primary Network Bridging."
+    ::= { rgAdvanced 7 }
+
+rgNATALG OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables/Disables NAT ALGs by setting the following bits:
+        0x00000001 - RSVP
+        0x00000002 - FTP
+        0x00000004 - TFTP
+        0x00000008 - Kerb88
+        0x00000010 - NetBios
+        0x00000020 - IKE
+        0x00000040 - RTSP
+        0x00000080 - Kerb1293
+        0x00000100 - H225
+        0x00000200 - PPTP
+        0x00000400 - MSN
+        0x00000800 - SIP
+        0x00001000 - ICQ
+        0x00002000 - IRC666x
+        0x00004000 - ICQTalk
+        0x00008000 - Net2Phone
+        0x00010000 - IRC7000
+        0x00020000 - IRC8000"
+    ::= { rgAdvanced 8 }
+
+rgDmzHost OBJECT-TYPE
+    SYNTAX      Integer32  (0..255)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Configuration of DMZ network device."
+    DEFVAL { 0 }
+    ::= { rgMgmtBase 13 }
+
+rgForwardingTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RgForwardingEntry
+    MAX-ACCESS  not-accessible
+    STATUS     current
+    DESCRIPTION
+            "This table contains information specific to forwarding."
+    REFERENCE
+            "Configuration of eRouter forwarding."
+    ::= {  rgMgmtBase 14 }
+
+rgForwardingEntry OBJECT-TYPE
+    SYNTAX      RgForwardingEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "List of individual forwarding entries."
+    INDEX { rgForwardingIndex }
+    ::= { rgForwardingTable 1 }
+
+RgForwardingEntry ::= SEQUENCE {
+    rgForwardingIndex            Integer32,
+    rgForwardingLocalIpAddrType  InetAddressType,
+    rgForwardingLocalIpAddr      InetAddress,
+    rgForwardingLocalStartPort   Integer32,
+    rgForwardingLocalEndPort     Integer32,
+    rgForwardingRemoteIpAddrType InetAddressType,
+    rgForwardingRemoteIpAddr     InetAddress,
+    rgForwardingRemoteStartPort  Integer32,
+    rgForwardingRemoteEndPort    Integer32,
+    rgForwardingProtocol         INTEGER,
+    rgForwardingDescription      OCTET STRING,
+    rgForwardingEnable           TruthValue,
+    rgForwardingRowStatus        RowStatus
+    }
+
+rgForwardingIndex OBJECT-TYPE
+    SYNTAX      Integer32  (0..65535)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "Forwarding Index."
+    ::= { rgForwardingEntry 1 }
+
+rgForwardingLocalIpAddrType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The Local IP address range type."
+    DEFVAL { ipv4 }
+    ::= { rgForwardingEntry 2 }
+
+rgForwardingLocalIpAddr OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The Local IP Address."
+    ::= { rgForwardingEntry 3 }
+
+rgForwardingLocalStartPort OBJECT-TYPE
+    SYNTAX      Integer32  (0..65535)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The Local Start Port."
+    DEFVAL { 0 }
+    ::= { rgForwardingEntry 4 }
+
+rgForwardingLocalEndPort OBJECT-TYPE
+    SYNTAX               Integer32  (0..65535)
+    MAX-ACCESS           read-create
+    STATUS      current
+    DESCRIPTION
+       "The Local End Port."
+    DEFVAL { 0 }
+    ::= { rgForwardingEntry 5 }
+
+rgForwardingRemoteIpAddrType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The Remote IP address range type."
+    DEFVAL { ipv4 }
+    ::= { rgForwardingEntry 6 }
+
+rgForwardingRemoteIpAddr OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+            "The Remote IP Address."
+    ::= { rgForwardingEntry 7 }
+
+rgForwardingRemoteStartPort    OBJECT-TYPE
+    SYNTAX      Integer32  (0..65535)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The Remote Start Port."
+    DEFVAL { 0 }
+    ::= { rgForwardingEntry 8 }
+
+rgForwardingRemoteEndPort    OBJECT-TYPE
+    SYNTAX      Integer32   (0..65535)
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The Remote End Port."
+    DEFVAL { 0 }
+    ::= { rgForwardingEntry 9 }
+
+rgForwardingProtocol    OBJECT-TYPE
+    SYNTAX              INTEGER  {
+                        tcp(1),
+                        udp(2),
+                        both(3)
+    }
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+       "The Protocol."
+    DEFVAL { 3 }
+    ::= { rgForwardingEntry 10 }
+
+rgForwardingDescription   OBJECT-TYPE
+    SYNTAX     OCTET STRING (SIZE(0..20))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+            "Description of this Forwarding entry."
+    ::= { rgForwardingEntry 11 }
+
+rgForwardingEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Enable or disable Forwarding entry."
+    DEFVAL { 1 }
+    ::= { rgForwardingEntry 12 }
+
+rgForwardingRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The RowStatus interlock for the creation and deletion
+        of a Forwarding entry."
+    ::= { rgForwardingEntry 13 }
+
+rgeRouterDhcpV6 OBJECT IDENTIFIER ::= { rgMgmtBase 15 }
+
+rgeRouterDhcpV6DelegatedPrefix OBJECT-TYPE
+    SYNTAX InetAddressIPv6
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The prefix of the IPv6 address block assigned to the eRouter
+        in the WAN DHCPv6 process."
+    ::= { rgeRouterDhcpV6 1 }
+
+rgeRouterDhcpV6DelegatedPrefixLen OBJECT-TYPE
+    SYNTAX InetAddressPrefixLength
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        "The prefix length of the IPv6 address block assigned to the
+        eRouter in the WAN DHCPv6 process."
+    ::= { rgeRouterDhcpV6 2 }
+
+rgWanFailOverBase OBJECT IDENTIFIER ::= { rgMgmtBase 16 }
+rgWanFailPolicy  OBJECT-TYPE
+    SYNTAX      INTEGER {
+                auto(1),
+                manual(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object controls WAN Failover Policy to switch between primary and
+         secondary WAN interface.  When set to auto, WAN interface is switched
+         automatically on failure.  When set to manual, WAN interface is switched
+         only when initiated by user."
+    DEFVAL { auto }
+    ::= { rgWanFailOverBase 1 }
+
+rgWanFailToggle OBJECT-TYPE
+    SYNTAX      INTEGER {
+                cable(1),
+                usb(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object controls the manual WAN toggle to the required interface.  Upon
+         setting the object, the switch to the selected interface take effect immediately."
+    DEFVAL { cable }
+    ::= { rgWanFailOverBase 2 }
+
+rgWanFailHoldOffTimer  OBJECT-TYPE
+    SYNTAX      Unsigned32 (30..300)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object controls the hold-off time in seconds before the next
+        WAN Failover Switch takes effect.  When the cmWanFailPolicy is manual, this
+        timer has no effect."
+    DEFVAL { 30 }
+    ::= { rgWanFailOverBase 3 }
+
+rgWanFailRestoreWaitTimer  OBJECT-TYPE
+    SYNTAX      Unsigned32 (30..300)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This object controls the Wait to Restore time in seconds before the next
+        WAN Recovery takes effect."
+    DEFVAL { 30 }
+    ::= { rgWanFailOverBase 4 }	
+	
+rgInterfaceGroupTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF RgInterfaceGroupEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "This table contains information specific to interface grouping.
+             This object may not be supported on all products or SW versions."
+    REFERENCE
+            "Configuration of eRouter Interface group."
+    ::= {  rgMgmtBase 17 }
+
+rgInterfaceGroupEntry OBJECT-TYPE
+    SYNTAX      RgInterfaceGroupEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+            "List of individual interface group entries."
+    INDEX { rgInterfaceGroupIndex }
+    ::= { rgInterfaceGroupTable 1 }
+
+RgInterfaceGroupEntry ::= SEQUENCE {
+    rgInterfaceGroupIndex       Integer32,
+    rgInterfaceGroupName        DisplayString,
+    rgInterfaceGroupPorts       Unsigned32,
+    rgInterfaceGroupRowStatus   RowStatus
+}
+
+rgInterfaceGroupIndex    OBJECT-TYPE
+    SYNTAX              Integer32   (1..299)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+       "The ID index of the RG interface group Entry."
+    ::= { rgInterfaceGroupEntry 1 }
+
+rgInterfaceGroupName    OBJECT-TYPE
+    SYNTAX      DisplayString ( SIZE (0..80) )
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+            "interface group name as brX"
+    ::= { rgInterfaceGroupEntry 2 }
+
+rgInterfaceGroupPorts  OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "Add interfaces by setting the following bits:
+        0x00000001 - eth0
+        0x00000002 - eth1
+        0x00000004 - eth2
+        0x00000008 - eth3
+        0x00000010 - stb0
+        0x00000020 - moca0
+        0x00000040 - wl0
+        0x00000080 - wl0.1
+        0x00000100 - wl0.2
+        0x00000200 - wl0.3
+        0x00000400 - wl0.4
+        0x00000800 - wl0.5
+        0x00001000 - wl0.6
+        0x00002000 - wl0.7
+        0x00004000 - wl1
+        0x00008000 - wl1.1
+        0x00010000 - wl1.2
+        0x00020000 - wl1.3
+        0x00040000 - wl0.4
+        0x00080000 - wl0.5
+        0x00100000 - wl0.6
+        0x00200000 - wl0.7"
+
+    ::= { rgInterfaceGroupEntry 3 }
+
+rgInterfaceGroupRowStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The RowStatus interlock for the creation and deletion
+        of a rgInterfaceGroupEntry."
+    ::= { rgInterfaceGroupEntry 4 }
+
+
+--
+-- Conformance definitions
+--
+rgConformance      OBJECT IDENTIFIER ::= { residentialGatewayMgmt 100 }
+
+--
+-- Compliance Statements
+--
+rgCompliances  OBJECT IDENTIFIER ::= { rgConformance 1 }
+rgGroups       OBJECT IDENTIFIER ::= { rgConformance 2 }
+
+rgCompliance  MODULE-COMPLIANCE
+    STATUS      current
+    DESCRIPTION
+        "The compliance statement for residential gateway devices."
+    MODULE
+    MANDATORY-GROUPS {
+               rgBaseGroup,
+               rgVlanGroup,
+               rgDsliteGroup,
+               rgLowLatencyGroup,
+               rgFirewallGroup,
+               rgAdvancedGroup,
+	       rgeRouterDhcpV6Group,
+	       rgWanFailGroup,
+               rgInterfaceGroup
+               
+    }
+    ::= { rgCompliances 1 }
+
+rgDeprecatedCompliance MODULE-COMPLIANCE
+   STATUS      deprecated
+   DESCRIPTION
+        "The compliance statement for deprecated objects."
+
+    MODULE -- this MODULE
+    GROUP rgDeprecatedGroup
+    DESCRIPTION
+        "This group contains objects which are deprecated
+         from the MIB as of the current release."
+::= { rgCompliances 2 }
+
+rgBaseGroup OBJECT-GROUP
+    OBJECTS {
+        rgRipEnabled,
+        rgVpnEnabled,
+        rgeRouterIpProvMode,
+        rgResetToFactory,
+        rgDmzHost,
+        rgForwardingLocalIpAddrType,
+        rgForwardingLocalIpAddr,
+        rgForwardingLocalStartPort,
+        rgForwardingLocalEndPort,
+        rgForwardingRemoteIpAddrType,
+        rgForwardingRemoteIpAddr,
+        rgForwardingRemoteStartPort,
+        rgForwardingRemoteEndPort,
+        rgForwardingProtocol,
+        rgForwardingDescription,
+        rgForwardingEnable,
+        rgForwardingRowStatus
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by all agents which implement this MIB."
+    ::= { rgGroups 1 }
+
+rgVlanGroup OBJECT-GROUP
+    OBJECTS {
+        rgVlanStrip,
+        rgVlanDesc,
+        rgVlanEthernet,
+        rgVlanWiFi,
+        rgVlanMoca,
+        rgVlanUSB,
+        rgVlanStartAddrType,
+        rgVlanStartAddr,
+        rgVlanEndAddrType,
+        rgVlanEndAddr,
+        rgVlanSubnetMaskType,
+        rgVlanSubnetMask,
+        rgVlanRouterIpType,
+        rgVlanRouterIp,
+        rgVlanLeaseTime,
+        rgVlanRouteMode,
+        rgVlanTOS,
+        rgVlanFirewall,
+        rgVlanUpnp,
+        rgVlanRowStatus,
+        rgVlanApplySettings
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support VLAN."
+    ::= { rgGroups 2 }
+
+rgDsliteGroup OBJECT-GROUP
+    OBJECTS {
+        rgDsliteEnabled,
+        rgDsliteAftrAddress,
+        rgDslitePcpMode,
+        rgDsliteTcpMssClamping,
+        rgDsliteIPv4FragEnabled
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support DS-lite."
+    ::= { rgGroups 3 }
+
+rgLowLatencyGroup OBJECT-GROUP
+    OBJECTS {
+        rgLowLatencyEnabled,
+        rgLowLatencyMaxDevices,
+        rgLowLatencyDscp,
+        rgLowLatencyAllDevicesEnabled,
+        rgLldHostName,
+        rgLldIpAddressType,
+        rgLldIpAddress,
+        rgLldLowLatencyEnabled,
+        rgLldTrafficFlow
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support the low latency
+         feature set."
+    ::= { rgGroups 4 }
+
+rgFirewallGroup OBJECT-GROUP
+    OBJECTS {
+        rgIPv4Firewall,
+        rgBlockFragIpPackets,
+        rgPortScanDetection,
+        rgIPFloodDetection,
+        rgIPv6Firewall
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support firewall."
+    ::= { rgGroups 5 }
+
+rgAdvancedGroup OBJECT-GROUP
+    OBJECTS {
+        rgWanBlocking,
+        rgIpsecPassthrough,
+        rgPPTPPassthrough,
+        rgRemoteConfigManagement,
+        rgMulticastEnable,
+        rgUPnPEnable,
+        rgPrimaryNetworkBridged,
+        rgNATALG
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support advanced features."
+    ::= { rgGroups 6 }
+
+rgeRouterDhcpV6Group OBJECT-GROUP
+    OBJECTS {
+        rgeRouterDhcpV6DelegatedPrefix,
+        rgeRouterDhcpV6DelegatedPrefixLen
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support interface mapping."
+    ::= { rgGroups 7 }
+
+rgWanFailGroup OBJECT-GROUP
+    OBJECTS {
+        rgWanFailPolicy,
+        rgWanFailToggle,
+        rgWanFailHoldOffTimer,
+        rgWanFailRestoreWaitTimer
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support WAN failover."
+    ::= { rgGroups 8 }
+
+rgInterfaceGroup OBJECT-GROUP
+    OBJECTS {
+        rgInterfaceGroupName,
+        rgInterfaceGroupPorts,
+        rgInterfaceGroupRowStatus
+    }
+    STATUS      current
+    DESCRIPTION
+        "A set of objects supported by agents which support interface mapping."
+    ::= { rgGroups 9 }   
+     
+rgDeprecatedGroup OBJECT-GROUP
+    OBJECTS {
+        rgOperMode
+    }
+    STATUS      deprecated
+    DESCRIPTION
+        "A set of objects for which support has been deprecated."
+    ::= { rgGroups 99 }
+
+END

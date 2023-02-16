@@ -1,0 +1,164 @@
+-- **************************************************************************
+-- 
+-- Copyright (c) 2007-2014 Broadcom Corporation
+-- 
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.
+-- 
+-- Except as expressly set forth in the Authorized License,
+--                                                                          
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--                                                                          
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--                                                                          
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--                                                                          
+-- *************************************************************************
+--    Description:                                                          
+--                                                                          
+-- *************************************************************************
+--    Revision History:                                                     
+--                                                                          
+-- *************************************************************************
+
+BRCM-STB-ECM-FACTORY-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE
+        FROM SNMPv2-SMI
+    MacAddress
+        FROM SNMPv2-TC
+    cableDataFactory
+        FROM BRCM-CABLEDATA-FACTORY-MIB;
+
+brcmStbEcmFactory MODULE-IDENTITY
+    LAST-UPDATED "201406030000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "    BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for management and configuration
+         of embedded settop objects used in manufacturing."
+    REVISION     "201406030000Z"
+    DESCRIPTION
+            "Removed unused imports."
+    REVISION     "201306170000Z"
+    DESCRIPTION
+            "Obsoleted this module in favor of the BRCM-CM-STB-FACTORY-MIB."
+    REVISION     "201304110000Z"
+    DESCRIPTION
+            "Added MacAddress to the IMPORTS section."
+    REVISION     "200703050000Z"
+    DESCRIPTION
+            "Initial version of this MIB module."
+    ::= { cableDataFactory 10 }
+
+-- brcmStbEcmFactoryBase: objects for DSG in the eCM while in factory mode    
+brcmStbEcmFactoryBase OBJECT IDENTIFIER ::= { brcmStbEcmFactory 1 }
+brcmStbEcmDsg OBJECT IDENTIFIER ::= { brcmStbEcmFactoryBase 1 }
+brcmStbEcmEstb OBJECT IDENTIFIER ::= { brcmStbEcmFactoryBase 2 }
+
+
+--
+-- DSG group
+--
+
+brcmStbEcmDsgMode  OBJECT-TYPE 
+     SYNTAX      INTEGER {
+                 disabled(0),
+                 basic(1),
+                 advanced(2)
+     }
+     MAX-ACCESS  read-write 
+     STATUS      obsolete 
+     DESCRIPTION 
+        "This object has been obsoleted in favor of brcmCmStbDsgMode from the
+         BRCM-CM-STB-FACTORY-MIB.
+
+         Reflects and controls the operational mode of DSG as indicated on the eCM.
+         This object always returns the current operational DSG mode. If set to 
+         disabled(0), the STB eCM will operate in normal DOCSIS fashion, as if
+         there is no DSG capability at all.  If set to advanced(2), the Settop
+         will behave as an advanced mode DSG Settop. Note that this object cannot
+         be set to basic(1), although it may return this value as a result of an
+         operational change by the DSGCC on the eSTB. The set value of this object
+         persists in non-vol and is accessible through the console as estb/ecm_mode." 
+     ::= { brcmStbEcmDsg 1 }
+
+brcmStbEcmClabCvcRootCaCert OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-write
+    STATUS      obsolete
+    DESCRIPTION
+        "This object has been obsoleted in favor of brcmCmStbClabCvcRootCaCert 
+         from the BRCM-CM-STB-FACTORY-MIB.
+
+         The CableLabs CVC Root CA Certificate for OpenCable applications."
+    ::= { brcmStbEcmDsg 2 }
+
+brcmStbEcmClabCvcCaCert OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-write
+    STATUS      obsolete
+    DESCRIPTION
+        "This object has been obsoleted in favor of brcmCmStbClabCvcCaCert from 
+         the BRCM-CM-STB-FACTORY-MIB.
+
+         The CableLabs CVC CA Certificate for OpenCable applications."
+    ::= { brcmStbEcmDsg 3 }
+
+--
+-- eSTB group
+--
+
+brcmStbEcmEstbMacAddress  OBJECT-TYPE 
+     SYNTAX      MacAddress
+     MAX-ACCESS  read-write 
+     STATUS      obsolete 
+     DESCRIPTION 
+        "This object has been obsoleted in favor of brcmCmStbEstbMacAddress from 
+         the BRCM-CM-STB-FACTORY-MIB.
+
+         The MAC Address of the eSTB. This is used to provision the 
+         eCM Bridge learning table."
+     ::= { brcmStbEcmEstb 1 }
+END

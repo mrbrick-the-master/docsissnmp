@@ -1,0 +1,2621 @@
+--****************************************************************************
+--
+-- Copyright (c) 2011-2015 Broadcom Corporation  
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.  
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--****************************************************************************
+--    Filename: brcm-wifi-mgmt.mib
+--    Author:   Kevin O'Neal
+--    Creation Date: July 14, 2011
+--
+--**************************************************************************
+--    Description:
+--
+--		private MIB for runtime (not factory) management of 802.11 (Wi-Fi)
+--      settings.
+--		
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-WIFI-MGMT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Integer32,
+    Unsigned32
+        FROM SNMPv2-SMI
+    TruthValue,
+    DisplayString,
+    PhysAddress,
+    RowStatus
+        FROM SNMPv2-TC
+    InetAddressType,
+    InetAddress
+        FROM INET-ADDRESS-MIB
+    ifIndex
+        FROM IF-MIB
+    SnmpAdminString
+        FROM SNMP-FRAMEWORK-MIB -- RFC 3411
+    cableDataMgmtMIBObjects
+        FROM BRCM-CABLEDATA-MGMT-MIB;
+
+wifiMgmt MODULE-IDENTITY
+    LAST-UPDATED "201510160000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "    BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+            "Broadcom proprietary MIB for runtime management and configuration
+             of objects related to the wi-fi network interfaces.  
+
+             This MIB replaces the deprecated BRCM-80211-MGMT-MIB, which was
+             not designed to accommodate multiple wi-fi interfaces."
+    REVISION      "201510160000Z"
+    DESCRIPTION
+             "Added none option to the and value options for wifiBssWpaAlgorithm."
+    REVISION      "201502130000Z"
+    DESCRIPTION
+             "Added wifiChannelBandwidth and wifiChannelSpec MIBs in 
+             wifiApsScanResultsTable."
+    REVISION      "201501160000Z"
+    DESCRIPTION
+             "Added wifiOperatingChannel, wifiACOperatingChanSpec MIBs."
+    REVISION      "201412090000Z"
+    DESCRIPTION
+             "Change wifiIASSchedulerType, wifiBSSIasSchedulerType to enumerations."
+    REVISION      "201411120000Z"
+    DESCRIPTION
+             "Added new objects and OIDS under wifiBase, wifiMbssEntry:
+             wifiIASStations, wifiBSSIasSchedulerType, to provide WiFi IAS support."
+    REVISION      "201410310000Z"
+    DESCRIPTION
+             "Added a new objects and OIDs under wifiAssocStaDiagnostics, 
+             wifChannelDiagnostics, wifiMetrics, to provide test/diagnostic values."
+    REVISION      "201410270000Z"
+    DESCRIPTION
+             "Added SSID Steering objects."
+    REVISION      "201407020000Z"
+    DESCRIPTION
+             "Added a new object wifiBssProtectedMgmtFrames to configure WiFi PMF support."
+    REVISION      "201406200000Z"
+    DESCRIPTION
+             "Fixed smilint errors."
+    REVISION      "201406130000Z"
+    DESCRIPTION
+             "Added PsPretend and Fcs MIBs."
+    REVISION      "201401080001Z"
+    DESCRIPTION
+             "Changed wifiBssOpmodeCapRequired names for values to lower case."
+    REVISION      "201401080000Z"
+    DESCRIPTION
+            "Textual updates."
+    REVISION      "201308020000Z"
+    DESCRIPTION
+            "Added WMF (Wireless Multicast Forwarding) objects."
+    REVISION      "201305070000Z"
+    DESCRIPTION
+            "Changed wifiMbssUserControl syntax from INTEGER to INTEGER (0..8).
+            Altered names for values in wifiNPhyRate definition to remove 
+            duplicate names.  Deleted the entry for the undefined 
+            wifiBssNetworkBridge in WifiBssEntry.  Removed errant comma from the
+            end of the definition for WifiWmmQosEntry."
+    REVISION      "201208290000Z"
+    DESCRIPTION
+            "Updated objects wifiNMode and wifi54gNetMode to include additional
+             configuration options."
+    REVISION      "201107140000Z"
+    DESCRIPTION
+            "Initial version of this MIB module."
+    ::= { cableDataMgmtMIBObjects 18 }
+
+--
+-- Textual Conventions
+--
+
+--
+-- Object Definitions
+--
+
+wifiMgmtNotifications  OBJECT IDENTIFIER ::= { wifiMgmt 0 }
+
+wifiMgmtMIBObjects OBJECT IDENTIFIER ::= { wifiMgmt 1 }
+
+wifiMgmtConformance OBJECT IDENTIFIER ::= { wifiMgmt 2 }
+
+--
+-- Notifications - placeholder - none defined
+-- 
+
+--
+-- MIB objects
+--
+
+wifiBase OBJECT IDENTIFIER ::= { wifiMgmtMIBObjects 1 }
+
+wifiApplySettings OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "If set to true(1), the current configuration set in this MIB 
+    	 will be written to non-volatile storage, and the wi-fi driver will
+    	 be restarted using this configuration.  This object may be used to
+    	 invoke an immediate reconfiguration of the wi-fi system without 
+         requiring a full reboot.  
+
+         Unless this object is explicitly set to true(1), any settings made via 
+         other objects in this MIB may be lost if a reboot occurs.  
+
+         Always returns false(2) when read."
+    ::= { wifiBase 1 }
+
+
+wifiPrimaryInterfaceTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiPrimaryInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of settings used to configure all primary wi-fi interfaces."
+    ::= { wifiBase 2 }
+
+wifiPrimaryInterfaceEntry OBJECT-TYPE
+    SYNTAX      WifiPrimaryInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the configuration of a primary wi-fi interface.
+
+         An entry exists in this table for each entry in the ifTable with an
+         ifType value of ieee80211(71), and which is designated as a primary 
+         wi-fi interface.
+
+         Note that non-primary interfaces (such as MBSS interfaces) are not 
+         represented in this table."
+    INDEX   { ifIndex }
+    ::= { wifiPrimaryInterfaceTable 1 }
+
+WifiPrimaryInterfaceEntry ::= 
+    SEQUENCE    {
+        wifiOperMode            INTEGER,
+        wifiCurrentChannel      Unsigned32,
+        wifiBeaconInterval      Unsigned32,
+        wifiDTIMInterval        Unsigned32,
+        wifiFragThresh          Unsigned32,
+        wifiRTSThresh           Unsigned32,
+        wifiShortRetryLimit     Unsigned32,
+        wifiLongRetryLimit      Unsigned32,
+        wifiRate                INTEGER,
+        wifiOutputPower         INTEGER,
+        wifiMbssUserControl     Integer32,
+        wifiRadioEnable	        TruthValue,
+        wifiApsScan             TruthValue,
+        wifiObssCoexMode        TruthValue,
+        wifiAcsdScanTimer       Unsigned32,
+        wifiWMFEnable           TruthValue,
+        wifiBSEnable            TruthValue,
+        wifiATFEnable           TruthValue,
+        wifiTrafficSchedulerEnable            TruthValue,
+        wifiEbosEnable          TruthValue,
+        wifiPsPretendRetryLimit    Unsigned32,
+        wifiPsPretendThreshold  Unsigned32,
+        wifiAcsFcsMode          Unsigned32,
+        wifiAcsDfs              Unsigned32,
+        wifiAcsCsScanTimer      Unsigned32,
+        wifiAcsCiScanTimer      Unsigned32,
+        wifiAcsCiScanTimeout    Unsigned32,
+        wifiAcsScanEntryExpire  Unsigned32,
+        wifiAcsTxIdleCnt        Unsigned32,
+        wifiAcsChanDwellTime    Unsigned32,
+        wifiAcsChanFlopPeriod   Unsigned32,
+        wifiAcsIntferPeriod     Unsigned32,
+        wifiAcsIntferCnt        Unsigned32,
+        wifiAcsIntferTxfail     Unsigned32,
+        wifiAcsIntferTcptxfail  Unsigned32,
+        wifiAcsDfsrImmediateSec Unsigned32,
+        wifiAcsDfsrImmediateThr Unsigned32,
+        wifiAcsDfsrDeferredSec  Unsigned32,
+        wifiAcsDfsrDeferredThr  Unsigned32,
+        wifiAcsDfsrActivitySec  Unsigned32,
+        wifiAcsDfsrActivityThr  Unsigned32,
+        wifiACSExcludeChannels  OCTET STRING,
+        wifiOperatingChannel    Unsigned32
+    }
+
+wifiOperMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                notAvailable(0),
+                off(1),
+                remote(2),
+                local(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Used to control the 802.11 operational mode for this interface.  If set
+         to notAvailable(0), then the wireless interface will be disabled, with
+         the radio off, and no wireless settings web pages will be available to 
+         the user.  
+         
+         If set to off(1) then the wireless interface will be disabled, but 
+         there may be a web page present which indicates that wireless service 
+         is available and that the MSO should be contacted to enable it.  
+         
+         If set to remote(2), then the wireless interface will be enabled, but 
+         the configuration web pages are read-only so that the user may not 
+         change the settings. 
+         
+         If set to local(3), then the wireless interface will be enabled, and 
+         the web pages will be read-write so that the user has full control over 
+         the settings."
+    ::= { wifiPrimaryInterfaceEntry 1 }
+
+-- 'Basic' web page objects
+
+wifiCurrentChannel OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..216)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the current channel number (802.11g) or
+	     control channel (802.11n) for this interface.
+
+         If set to (0), the AP will be put in auto-channel mode where
+	     it automatically scans for the least-crowded channel.
+
+         For 802.11g cards, available channels are 1-14.
+	     For 802.11n cards, available channels are 34-216.
+
+         Channel selection is also subject to restrictions based on the selected
+	     country code."
+    ::= { wifiPrimaryInterfaceEntry 2 }
+
+-- 'Advanced' web page objects
+
+wifiBeaconInterval OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..65535)
+    UNITS       "milliseconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the beacon interval for this interface."
+    ::= { wifiPrimaryInterfaceEntry 3 }
+
+wifiDTIMInterval OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..255)
+    UNITS       "milliseconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the DTIM interval for this interface."
+    ::= { wifiPrimaryInterfaceEntry 4 }
+
+wifiFragThresh OBJECT-TYPE
+    SYNTAX      Unsigned32  (256..2346)
+    UNITS       "bytes"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the fragmentation threshold for this interface."
+    ::= { wifiPrimaryInterfaceEntry 5 }
+
+wifiRTSThresh OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..2347)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the RTS threshold for this interface."
+    ::= { wifiPrimaryInterfaceEntry 6 }
+
+-- Short and Long Retry Limit not on the web page, but presented here.    
+
+wifiShortRetryLimit OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..255)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the short retry limit for this interface."
+    ::= { wifiPrimaryInterfaceEntry 7 }
+    
+wifiLongRetryLimit OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..255)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the long retry limit for this interface."
+    ::= { wifiPrimaryInterfaceEntry 8 }
+
+wifiRate OBJECT-TYPE
+    SYNTAX      INTEGER {
+                auto(0),
+                mbits1(1),
+                mbits2(2),
+                mbits5-5(5),
+                mbits6(6),
+                mbits9(9),
+                mbits11(11),
+                mbits12(12),
+                mbits18(18),
+                mbits24(24),
+                mbits36(36),
+                mbits48(48),
+                mbits54(54)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Forces the transmission rate for the AP to a particular speed."
+    DEFVAL { auto }
+    ::= { wifiPrimaryInterfaceEntry 9 }
+
+wifiOutputPower OBJECT-TYPE
+    SYNTAX      INTEGER {
+                percent25(25),
+                percent50(50),
+                percent75(75),
+                percent100(100)
+    }
+    MAX-ACCESS  read-only
+    STATUS      obsolete
+    DESCRIPTION
+        "Sets the output power relative to the hardware's maximum capability."
+    DEFVAL { percent100 }
+    ::= { wifiPrimaryInterfaceEntry 10 }
+
+wifiMbssUserControl OBJECT-TYPE
+    SYNTAX      Integer32 (0..8)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Sets the number of user controlled Wifi networks for this interface.
+		    0 <--- The user has no control over wireless. No 802.11 web pages 
+                   will be displayed.  For now, we don't need to support this. 
+                   An attempt to set it to zero can just return an error.
+			1 <--- The user has control over the primary wireless network only. 
+                   No guest network page is displayed.
+			2 <--- The user has control over the primary wireless network and 
+                   one guest network.  No drop down menu (or only 1 item in the 
+                   menu) for additional guest network configuration.
+			3 <--- Same as above with 2 guest networks
+			4 <--- Same as above with 3 guest networks 
+			5 <--- Same as above with 4 guest networks 
+			6 <--- Same as above with 5 guest networks 
+			7 <--- Same as above with 6 guest networks 
+			8 <--- Same as above with 7 guest networks (Depending on Wifi Card 
+                   either 3 or 7 guest networks are supported)."
+    ::= { wifiPrimaryInterfaceEntry 11 }
+
+wifiRadioEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio on the select Card.  
+		 If set to true(1), the AP will turn on the wifi Radio for that card.
+		 Set to false(2) to disable the WIFI radio for card."
+    ::= { wifiPrimaryInterfaceEntry 12 }
+
+wifiApsScan OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "If set to true(1), WiFi Radio will be configured to scan for the APs. 
+        Scan results with list of neighboring APs will be updated in wifiApsScanResultsTable.
+        Always returns false(2) when read."
+    ::= { wifiPrimaryInterfaceEntry 13 }
+
+wifiObssCoexMode OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio's OBSS Coexistence on the selected Card.  
+		 If set to true(1), the AP will turn on the OBSS Coexistence for that card.
+		 Set to false(2) to disable the OBSS Coexistence for card."
+    ::= { wifiPrimaryInterfaceEntry 14 }
+
+wifiAcsdScanTimer OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..4294967295)
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Scan Timer for this interface."
+    ::= { wifiPrimaryInterfaceEntry 15 }
+
+wifiWMFEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio's Wireless Multicast Forwarding (WMF) for all cards.  
+		 If set to true(1), then WMF will be enabled.
+		 Set to false(2) to disable the WMF feature."
+    ::= { wifiPrimaryInterfaceEntry 16 }
+
+wifiBSEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio's Band steering capability for all cards.  
+		 If set to true(1), then Band steering will be enabled.
+		 Set to false(2) to disable the Band steering feature."
+    ::= { wifiPrimaryInterfaceEntry 17 }
+
+wifiATFEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio's Air Time Fairness capability for all cards.  
+		 If set to true(1), then ATF will be enabled.
+		 Set to false(2) to disable the ATF feature."
+    ::= { wifiPrimaryInterfaceEntry 18 }
+
+wifiTrafficSchedulerEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio's Traffic Scheduling capability for all cards.  
+		 If set to true(1), then Traffic Scheduler will be enabled.
+		 Set to false(2) to disable the Traffic Scheduler feature."
+    ::= { wifiPrimaryInterfaceEntry 19 }
+
+wifiEbosEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio's Exhausted Buffer Order Scheduling capability for all cards.  
+		 If set to true(1), then EBOS will be enabled.
+		 Set to false(2) to disable the EBOS feature."
+    ::= { wifiPrimaryInterfaceEntry 20 }
+
+wifiPsPretendRetryLimit OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..32)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the power save pretend retry limit."
+    ::= { wifiPrimaryInterfaceEntry 21 }
+
+wifiPsPretendThreshold OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..255)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the power save pretend threshold."
+    ::= { wifiPrimaryInterfaceEntry 22 }
+
+wifiAcsFcsMode OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..1)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects ACS SCS/FCS mode."
+    ::= { wifiPrimaryInterfaceEntry 23 }
+
+wifiAcsDfs OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..2)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects ACS DFS mode."
+    ::= { wifiPrimaryInterfaceEntry 24 }
+
+wifiAcsCsScanTimer OBJECT-TYPE
+    SYNTAX      Unsigned32  (60..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS CS Scan Timer."
+    ::= { wifiPrimaryInterfaceEntry 25 }
+
+wifiAcsCiScanTimer OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS CI Scan Timer."
+    ::= { wifiPrimaryInterfaceEntry 26 }
+
+wifiAcsCiScanTimeout OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS CI Scan Timeout."
+    ::= { wifiPrimaryInterfaceEntry 27 }
+
+wifiAcsScanEntryExpire OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Scan Entry Expire Value."
+    ::= { wifiPrimaryInterfaceEntry 28 }
+
+wifiAcsTxIdleCnt OBJECT-TYPE
+    SYNTAX      Unsigned32  
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Tx Idle Count Value."
+    ::= { wifiPrimaryInterfaceEntry 29 }
+
+wifiAcsChanDwellTime OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Channel Dwell Time."
+    ::= { wifiPrimaryInterfaceEntry 30 }
+
+wifiAcsChanFlopPeriod OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Channel Flop Period."
+    ::= { wifiPrimaryInterfaceEntry 31 }
+
+wifiAcsIntferPeriod OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..65535)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Interference Period."
+    ::= { wifiPrimaryInterfaceEntry 32 }
+
+wifiAcsIntferCnt OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Interference Count."
+    ::= { wifiPrimaryInterfaceEntry 33 }
+
+wifiAcsIntferTxfail OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..65535)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Interference TX Fail."
+    ::= { wifiPrimaryInterfaceEntry 34 }
+
+wifiAcsIntferTcptxfail OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..65535)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS Interference TCP Tx Fail."
+    ::= { wifiPrimaryInterfaceEntry 35 }
+
+wifiAcsDfsrImmediateSec OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS DFSR Immediate Sec."
+    ::= { wifiPrimaryInterfaceEntry 36 }
+
+wifiAcsDfsrImmediateThr OBJECT-TYPE
+    SYNTAX      Unsigned32  
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS DFSR Immediate Thr."
+    ::= { wifiPrimaryInterfaceEntry 37 }
+
+wifiAcsDfsrDeferredSec OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS DFSR Deferred Sec."
+    ::= { wifiPrimaryInterfaceEntry 38 }
+
+wifiAcsDfsrDeferredThr OBJECT-TYPE
+    SYNTAX      Unsigned32  
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS DFSR Deferred Threshold."
+    ::= { wifiPrimaryInterfaceEntry 39 }
+
+wifiAcsDfsrActivitySec OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..4294967295)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS DFSR Activity Sec."
+    ::= { wifiPrimaryInterfaceEntry 40 }
+
+wifiAcsDfsrActivityThr OBJECT-TYPE
+    SYNTAX      Unsigned32 
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the ACS DFSR Activity Threshold."
+    ::= { wifiPrimaryInterfaceEntry 41 }
+
+wifiACSExcludeChannels OBJECT-TYPE
+    SYNTAX      OCTET STRING 
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Set/Gets the chanspecs(in hex,seperated by comma) that ACSD scan should exclude."
+    ::= { wifiPrimaryInterfaceEntry 42 }
+
+wifiOperatingChannel OBJECT-TYPE
+    SYNTAX      Unsigned32 (0..216)
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the operating channel number (802.11g) or
+	     control channel (802.11n) for this interface."
+    ::= { wifiPrimaryInterfaceEntry 43 }
+
+
+wifi80211gInterfaceTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF Wifi80211gInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of settings used to configure all wi-fi interfaces which are
+         capable of supporting the IEEE 802.11g standard."
+    ::= { wifiBase 3 }
+
+wifi80211gInterfaceEntry OBJECT-TYPE
+    SYNTAX      Wifi80211gInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the configuration of 802.11g specific parameters
+         for a primary wifi interface.  
+
+         An entry exists in this table for each entry in the ifTable with an
+         ifType value of ieee80211(71), which is designated as a primary 
+         wi-fi interface in the ifTable, and which is capable of supporting the 
+         IEEE 802.11g standard.
+
+         Note that non-primary interfaces such as MBSS interfaces are not 
+         represented in this table."
+    INDEX   { ifIndex }
+    ::= { wifi80211gInterfaceTable 1 }
+
+Wifi80211gInterfaceEntry ::= 
+    SEQUENCE    {
+        wifi54gNetMode          INTEGER,
+        wifi54gProtectionEnable TruthValue,
+        wifi54gBasicRateSet     INTEGER
+    }
+
+wifi54gNetMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+		mode54g11bOnly(0),
+		mode54gAuto(1),
+        mode54gOnly(2),
+		mode54gPerformance(4),
+		mode54gLRS(5)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the behavior of the interface with regards to 
+         which flavor of 802.11g is used.  
+
+         If set to mode54gLRS(5), the interface will interoperate with the 
+         widest variety of 54g and 802.11b clients.
+
+         If set to mode54gPerformance(4), the highest throughout will be provided 
+         and only 54g clients will be accepted, however nearby 802.11b networks 
+         may suffer degraded performance.  
+
+         If set to mode54g11bOnly(0), only 802.11b clients will be accepted.  
+
+         If set to mode54gAuto(1) the interface will attempt to operate at 54g 
+         rates unless an 802.11b client is detected.
+
+         If set to mode54gOnly(2), only 802.11g clients will be accepted."
+    DEFVAL { mode54gAuto }
+    ::= { wifi80211gInterfaceEntry 1 }
+    
+wifi54gProtectionEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of 54g protection.  If set to true(1),
+         the AP will use RTS/CTS to improve 802.11g performance in mixed 
+         802.11g/802.11b networks.  Set to false(2) to maximize 802.11g 
+         throughput under most conditions."
+    DEFVAL { false }
+    ::= { wifi80211gInterfaceEntry 2 }
+
+wifi54gBasicRateSet OBJECT-TYPE
+    SYNTAX      INTEGER {
+		default(1),
+		all(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines which rates are advertised as BASIC rates in the beacon.
+    	 If set to default, the driver defaults for the selected 54gMode will
+    	 be used.  If set to all, all available rates will be advertised as
+    	 BASIC rates regardless of the 54gMode setting."
+    DEFVAL { default }
+    ::= { wifi80211gInterfaceEntry 3 }
+
+
+wifi80211nInterfaceTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF Wifi80211nInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of settings used to configure all wi-fi interfaces which are
+         capable of supporting the IEEE 802.11n standard."
+    ::= { wifiBase 4 }
+
+wifi80211nInterfaceEntry OBJECT-TYPE
+    SYNTAX      Wifi80211nInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the configuration of 802.11g specific parameters
+         for a primary wifi interface.  
+
+         An entry exists in this table for each entry in the ifTable with an
+         ifType value of ieee80211(71), which is designated as a primary 
+         wi-fi interface in the ifTable, and which is capable of supporting the 
+         IEEE 802.11n standard.
+
+         Note that non-primary interfaces such as MBSS interfaces are not 
+         represented in this table."
+    INDEX   { ifIndex }
+    ::= { wifi80211nInterfaceTable 1 }
+
+Wifi80211nInterfaceEntry ::= 
+    SEQUENCE    {
+        wifiNMode           INTEGER,
+        wifiNPhyRate        INTEGER,
+        wifiNBand           INTEGER,
+        wifiNBandWidth      INTEGER,
+        wifiNSideBand       INTEGER,
+        wifiNProtection     INTEGER
+    }
+
+wifiNMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+		auto(1),
+		off(2),
+        nOnly(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines which Mode the N card will run in. Auto Mode will detect 
+         which stations are out there and run in the proper mode, Off Mode will 
+         make it such the card will not run in N mode but will operate in the 
+         mode specified by wifi54gNetMode.  The nOnly setting will configure the
+         card to operate only in N mode - 'b' and 'g' modes will be inhibited.
+
+  		 Note: This is for N cards only, and this may also affect other MIB 
+         settings."
+    ::= { wifi80211nInterfaceEntry 1 }
+   
+wifiNPhyRate OBJECT-TYPE
+    SYNTAX      INTEGER {
+                  auto(0),
+                  legacy(1),
+                  mbits6or13(2), -- actually 6.5 or 13.5
+                  mbits13or27(3),
+                  mbits19-5or40-5(4),
+                  mbits26or54(5),
+                  mbits39or81(6),
+                  mbits52or108(7),
+                  mbits58or121(8), -- actually 58.5 or 121.5
+                  mbits65or135(9),
+                  mbits13or27-2str(10),
+                  mbits26or54-2str(11),
+                  mbits39or81-2str(12),
+                  mbits52or108-2str(13),
+                  mbits78or162-2str(14),
+                  mbits104or216-2str(15),
+                  mbits117or243-2str(16),
+                  mbits130or270-2str(17)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Forces the N Phy transmission rate for the AP to a particular speed.  
+         Each pair of rates corresponds to a 20 MHz or 40 MHz channel 
+         configuration."
+    DEFVAL { auto }
+    ::= { wifi80211nInterfaceEntry 2 }
+ 
+wifiNBand OBJECT-TYPE
+    SYNTAX      INTEGER {
+		band2400MHz(1), -- 2.4 GHz
+		band5000MHz(2)  -- 5 GHz
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines which Band that we will be operating in. Either the 2.4G or 
+         the 5G Hz.  Note: This is for N cards only."
+    ::= { wifi80211nInterfaceEntry 3 }
+
+wifiNBandWidth OBJECT-TYPE
+    SYNTAX      INTEGER {
+                none(0),
+		width20MHz(1),
+		width40MHz(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines which Band Width that we will be operating in. Either the 
+         20MHz or the 40MHz.  Note: This is for N cards only, and this also 
+         affect other MIB selections such as wifiNSideBand."
+    ::= { wifi80211nInterfaceEntry 4 }
+
+wifiNSideBand OBJECT-TYPE
+    SYNTAX      INTEGER {
+                none(0),
+		upper(1),
+		lower(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines which side Band the channel will operate in.
+		 This mib is dependent of what wifiNBandWidth is selected and only
+		 applies when 40MHz is selected. Returns none(0) when wifiNBandWidth != 40MHz."
+    ::= { wifi80211nInterfaceEntry 5 }
+
+wifiNProtection OBJECT-TYPE
+    SYNTAX      INTEGER {
+		auto(1),
+		off(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines if protection will be turned on or off for N mode.
+         Note: This is for N cards only."
+    ::= { wifi80211nInterfaceEntry 6 }
+
+
+wifiApsScanResultsTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiApsScanResultsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of neighboring APs list found after APs Scan request (wifiApsScan
+        in wifiPrimaryInterfaceTable). The table can list up to 32 APs."
+    ::= { wifiBase 5 }
+
+wifiApsScanResultsEntry OBJECT-TYPE
+    SYNTAX      WifiApsScanResultsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing neighboring AP information. First element wifiValid
+        determines if the current entry is valid or not. The information includes
+        SSID, RSSI, Channel, Mac Address etc."
+    INDEX   { ifIndex }
+    ::= { wifiApsScanResultsTable 1 }
+
+WifiApsScanResultsEntry ::= 
+    SEQUENCE    {
+        wifiValid           INTEGER,
+        wifiNetworkName     OCTET STRING,
+        wifiSecurityMode    OCTET STRING,
+        wifiPhyMode         OCTET STRING,
+        wifiRssi            Integer32,
+        wifiChannel         Integer32,
+        wifiMacAddress      PhysAddress,
+        wifiChannelBandwidth  OCTET STRING,
+        wifiChannelSpec       OCTET STRING
+    }
+
+wifiValid OBJECT-TYPE
+    SYNTAX      INTEGER {
+                invalid(0),
+                valid(1)
+    }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Determines if the current entry is valid or not."
+    ::= { wifiApsScanResultsEntry 1 }
+
+wifiNetworkName OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP name or SSID."
+    ::= { wifiApsScanResultsEntry 2 }
+
+wifiSecurityMode OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP security mode."
+    ::= { wifiApsScanResultsEntry 3 }
+
+wifiPhyMode OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP PHY mode."
+    ::= { wifiApsScanResultsEntry 4 }
+
+wifiRssi OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP receive signal strength."
+    ::= { wifiApsScanResultsEntry 5 }
+
+wifiChannel OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      deprecated
+    DESCRIPTION
+        "Neighboring AP operating channel."
+    ::= { wifiApsScanResultsEntry 6 }
+
+wifiMacAddress OBJECT-TYPE
+    SYNTAX      PhysAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP MAC address."
+    ::= { wifiApsScanResultsEntry 7 }
+
+wifiChannelBandwidth OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP channel bandwidth 20MHz, 40MHz or 80MHz."
+    ::= { wifiApsScanResultsEntry 8 }
+
+wifiChannelSpec OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP channel specification.
+        For 20MHz bandwidth, channel specifications are control channel. 
+             For example 1, 36 etc.
+         For 40MHz bandwidth, channel specifications are combination of control channel
+             and sideband ('u' is for upper sideband and 'l' is for lower sideband). 
+             For example 5u, 1l, 40u, 36l etc.
+         For 80MHz bandwidth, channel specifications are 36/80, 52/80, 100/80 etc."
+    ::= { wifiApsScanResultsEntry 9 }
+
+
+wifi80211acInterfaceTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF Wifi80211acInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of settings used to configure all wi-fi interfaces which are
+         capable of supporting the IEEE 802.11ac standard."
+    ::= { wifiBase 6 }
+
+wifi80211acInterfaceEntry OBJECT-TYPE
+    SYNTAX      Wifi80211acInterfaceEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the configuration of 802.11ac specific parameters
+         for a primary wifi interface.  
+
+         An entry exists in this table for each entry in the ifTable with an
+         ifType value of ieee80211(71), which is designated as a primary 
+         wi-fi interface in the ifTable, and which is capable of supporting the 
+         IEEE 802.11ac standard.
+
+         Note that non-primary interfaces such as MBSS interfaces are not 
+         represented in this table."
+    INDEX   { ifIndex }
+    ::= { wifi80211acInterfaceTable 1 }
+
+Wifi80211acInterfaceEntry ::= 
+    SEQUENCE    {
+        wifiACBandWidth      INTEGER,
+        wifiACChannelSpec    OCTET STRING,
+        wifiACTxbfBFRCap         TruthValue,
+        wifiACTxbfBFECap         TruthValue,
+        wifiACOperatingChanSpec  OCTET STRING
+    }
+
+wifiACBandWidth OBJECT-TYPE
+    SYNTAX      INTEGER {
+		width20MHz(1),
+		width40MHz(2),
+		width80MHz(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Determines which Band Width that we will be operating in. Either the 
+         20MHz, 40MHz or the 80MHz.  Note: This is for N or AC cards only."
+    ::= { wifi80211acInterfaceEntry 1 }
+
+wifiACChannelSpec OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..20))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the current channel specification for this interface.
+
+         If set to (0), the AP will be put in auto-channel mode where
+	     it automatically scans for the least-crowded channel.
+
+         For 20MHz bandwidth, channel specifications are control channel. 
+             For example 1, 36 etc.
+         For 40MHz bandwidth, channel specifications are combination of control channel
+             and sideband ('u' is for upper sideband and 'l' is for lower sideband). 
+             For example 5u, 1l, 40u, 36l etc.
+         For 80MHz bandwidth, channel specifications are 36/80, 52/80, 100/80 etc.
+
+         Channel specification selection is also subject to restrictions based on the 
+	     selected country code."
+    ::= { wifi80211acInterfaceEntry 2 }
+
+wifiACTxbfBFRCap OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the BFR Capability on the selected Card.  
+		 If set to true(1), the AP will turn on the BFR Capability for that card.
+		 Set to false(2) to disable the BFR Capability for card."
+    ::= { wifi80211acInterfaceEntry 3 }
+
+wifiACTxbfBFECap OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the BFE Capability on the selected Card.  
+		 If set to true(1), the AP will turn on the BFE Capability for that card.
+		 Set to false(2) to disable the BFE Capability for card."
+    ::= { wifi80211acInterfaceEntry 4 }
+
+wifiACOperatingChanSpec OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(1..20))
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the operating channel specification for this interface."
+    ::= { wifi80211acInterfaceEntry 5 }
+
+
+wifiSsidSteeringEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the state of Wifi Radio's SSID Steering for all cards.  
+		 If set to true(1), then SSD will be enabled.
+		 Set to false(2) to disable the SSD feature."
+    ::= { wifiBase 7 }
+
+wifiIASStations OBJECT IDENTIFIER ::= { wifiBase 8 }
+
+wifiIASStaOpTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiIASStaOpEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Set/Get count/clear operations on the active IAS per-station traffic rules."
+    ::= { wifiIASStations 1 }
+
+wifiIASStaOpEntry OBJECT-TYPE
+    SYNTAX      WifiIASStaOpEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Per-radio node for IAS - STA clear and count operations."
+    INDEX   { ifIndex }
+    ::= { wifiIASStaOpTable 1 }
+
+WifiIASStaOpEntry ::= 
+    SEQUENCE    {
+        wifiIASStaCountItem    Unsigned32,
+        wifiIASStaClearItem    TruthValue
+    }
+
+wifiIASStaCountItem OBJECT-TYPE
+    SYNTAX      Unsigned32 
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the mac address of the IAS per-station traffic rule."
+    ::= { wifiIASStaOpEntry 1 }
+
+wifiIASStaClearItem OBJECT-TYPE
+    SYNTAX      TruthValue 
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the mac address of the IAS per-station traffic rule."
+    ::= { wifiIASStaOpEntry 2 }
+
+wifiIASStaTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiIASStaEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of settings used to configure IAS per-station traffic rules on Wi-Fi interfaces."
+    ::= { wifiIASStations 3 }
+
+wifiIASStaEntry OBJECT-TYPE
+    SYNTAX      WifiIASStaEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the configuration of a IAS per-station traffic rule."
+    INDEX   { ifIndex }
+    ::= { wifiIASStaTable 1 }
+
+WifiIASStaEntry ::= 
+    SEQUENCE    {
+        wifiIASStaMac              PhysAddress,
+        wifiIASStaSchedulerType    INTEGER,
+        wifiIASStaPriority         Unsigned32
+    }
+
+wifiIASStaMac OBJECT-TYPE
+    SYNTAX      PhysAddress 
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the mac address of the IAS per-station traffic rule."
+    ::= { wifiIASStaEntry 1 }
+
+wifiIASStaSchedulerType OBJECT-TYPE
+    SYNTAX      INTEGER {
+                data(1),
+                public(2),
+                video(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the scheduler type of the IAS per-station traffic rule.
+        Default value is data - (1). Set to (1) for data, (2) for public, (3) for video."
+    DEFVAL { data }
+    ::= { wifiIASStaEntry 2 }
+
+wifiIASStaPriority OBJECT-TYPE
+    SYNTAX      Unsigned32  (0..255)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the video scheduler priority of the IAS per-station traffic rule."
+    ::= { wifiIASStaEntry 3 }
+
+wifiMbss OBJECT IDENTIFIER ::= { wifiMgmtMIBObjects 2 }
+
+wifiBssTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiBssEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of interfaces in an MBSS system."
+    ::= { wifiMbss 1}
+    
+wifiBssEntry OBJECT-TYPE
+    SYNTAX      WifiBssEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing the characteristics of an individual BSS.  An
+         entry exists in this table for each entry of type ieee80211 (71) in
+         the ifTable.  The table includes both primary and MBSS interfaces."
+    INDEX   { ifIndex }
+    ::= { wifiBssTable 1 }
+
+WifiBssEntry ::= 
+SEQUENCE    {
+    wifiBssId                      PhysAddress,
+    wifiBssEnable                  TruthValue,
+    wifiBssSsid                    OCTET STRING,
+    wifiBssSecurityMode            INTEGER,
+    wifiBssClosedNetwork           TruthValue,
+    wifiBssAccessMode              INTEGER,
+    wifiBssMaxAssociationsLimit    Unsigned32,
+    wifiBssOpmodeCapRequired       INTEGER,
+    wifiBssProtectedMgmtFrames     INTEGER,
+    wifiBssPublicAccessMode        INTEGER,
+    wifiBssMfbProbeResponse        TruthValue,
+    wifiBssAccessTableClear        TruthValue,
+    wifiBssIASSchedulerEnable      TruthValue,
+    wifiBssIASSchedulerType        INTEGER
+}
+    
+wifiBssId OBJECT-TYPE
+    SYNTAX      PhysAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The physical address associated with this service set."
+    ::= { wifiBssEntry 1 }
+    
+wifiBssEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables or disables this service set."
+    ::= { wifiBssEntry 2 }
+
+wifiBssSsid OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(0..32))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the service set identifier for this BSS."
+    ::= { wifiBssEntry 3 }
+    
+wifiBssSecurityMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                disabled(0),
+                wep(1),
+                wpaPsk(2),
+                wpa2Psk(3),
+                wpaEnterprise(4),
+                wpa2Enterprise(5),
+                radiusWep(6),
+                wpaWpa2Psk(7),
+                wpaWpa2Enterprise(8)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Security mode may be chosen from Disable, WEP, WPA-PSK, WPA2-PSK,
+         WPA-Enterprise, WPA2-Enterprise or RADIUS-WEP.  All devices on the 
+         network must use the same security mode in order to communicate.
+
+         If set to disabled(0):
+            Open system. No authentication or encryption.
+
+         If set to wep(1) then the following parameters must be set:
+            Default Transmit Key (wifiBssWepDefaultKey):
+                Choose which Key to use.
+            WEP Key Bit (wifiBssWepEncryptionMode):
+                May select from 64-Bit or 128-Bit encryption.
+            Passphrase (wifiBssWepPassPhrase):
+                Enter a passphrase consisting of any keyboard character
+                to be used to generate a hex WEP key.
+            Key 1-4 (wifiBssWep64BitKeyTable or wifiBssWep128BitKeyTable):
+                Enter a WEP key manually. Must use only hex character (0-9 and A-F).
+                64-bit WEP requires 10 hex characters, 128-Bit WEP requires the use of
+                26 hex characters.
+                
+         If set to wpaPsk(2) then the following parameters must be set:
+            WPA Algorithm (wifiBssWpaAlgorithm):
+                TKIP or AES.
+            WPA Pre-Shared Key (wifiBssWpaPreSharedKey):
+                Choose a unique key to authenticate with other devices on the network.
+                The Pre-Shared Key must be between 8 and 63 characters in length.
+            Group Key Renewal (wifiBssWpaGroupRekeyInterval):
+                This settings determines how often the group key changes.
+
+         If set to wpa2Psk(3) then the following parameters must be set:
+            WPA2 Algorithm (wifiBssWpaAlgorithm):
+                AES or TKIP+AES.
+            WPA2 Pre-Shared Key (wifiBssWpaPreSharedKey):
+                Choose a unique key to authenticate with other devices on the network.
+                The Pre-Shared Key must be between 8 and 63 characters in length.
+            Group Key Renewal (wifiBssWpaGroupRekeyInterval):
+                This settings determines how often the group key changes.
+                
+         If set to wpaEnterprise(4) then the following parameters must be set:
+            WPA Algorithm (wifiBssWpaAlgorithm):
+                TKIP or AES.
+            RADIUS Server Address (wifiBssRadiusAddress):
+                The IP address of the RADIUS server.
+            RADIUS Server Port (wifiBssRadiusPort):
+                The port the RADIUS server uses.
+            RADIUS Shared Secret (wifiBssRadiusKey):
+                The shared secret set on the RADIUS server.
+            Key Renewal Timeout (wifiBssRadiusReAuthInterval):
+                Determines how often the keys should be renewed.
+                
+         If set to wpa2Enterprise(5) then the following parameters must be set:
+            WPA2 Algorithm (wifiBssWpaAlgorithm):
+                AES or TKIP+AES.
+            RADIUS Server Address (wifiBssRadiusAddress):
+                The IP address of the RADIUS server.
+            RADIUS Server Port (wifiBssRadiusPort):
+                The port the RADIUS server uses.
+            RADIUS Shared Secret (wifiBssRadiusKey):
+                The shared secret set on the RADIUS server.
+            Key Renewal Timeout (wifiBssRadiusReAuthInterval):
+                Determines how often the keys should be renewed.
+                
+         If set to radiusWep(6) then the following parameters must be set:
+            RADIUS Server Address (wifiBssRadiusAddressType / wifiBssRadiusAddress):
+                The IP address of the RADIUS server.
+            RADIUS Server Port (wifiBssRadiusPort):
+                The port the RADIUS server uses.
+            RADIUS Shared Secret (wifiBssRadiusKey):
+                The shared secret set on the RADIUS server.
+            Default Transmit Key (wifiBssWepDefaultKey):
+                Choose which Key to use.
+            WEP Key Bit (wifiBssWepEncryptionMode):
+                May select from 64-Bit or 128-Bit encryption.
+            Passphrase (wifiBssWepPassPhrase):
+                Enter a passphrase consisting of any keyboard character
+                to be used to generate a hex WEP key.
+            Key 1-4 (wifiBssWep64BitKeyTable or wifiBssWep128BitKeyTable):
+                Enter a WEP key manually. Must use only hex character (0-9 and A-F).
+                64-bit WEP requires 10 hex characters, 128-Bit WEP requires the use of
+                26 hex characters.
+
+         If set to wpaWpa2Psk(7) then the following parameters must be set:
+            WPA Algorithm (dot11BssWpaAlgorithm):
+                TKIP or AES.
+            WPA Pre-Shared Key (dot11BssWpaPreSharedKey):
+                Choose a unique key to authenticate with other devices on the network.
+                The Pre-Shared Key must be between 8 and 63 characters in length.
+            Group Key Renewal (dot11BssWpaGroupRekeyInterval):
+                This settings determines how often the group key changes.
+
+         If set to wpaWpa2Enterprise(8) then the following parameters must be set:
+            WPA Algorithm (dot11BssWpaAlgorithm):
+                TKIP or AES.
+            RADIUS Server Address (dot11BssRadiusAddress):
+                The IP address of the RADIUS server.
+            RADIUS Server Port (dot11BssRadiusPort):
+                The port the RADIUS server uses.
+            RADIUS Shared Secret (dot11BssRadiusKey):
+                The shared secret set on the RADIUS server.
+            Key Renewal Timeout (dot11BssRadiusReAuthInterval):
+                Determines how often the keys should be renewed."
+    ::= { wifiBssEntry 4 }
+    
+wifiBssClosedNetwork OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls whether the device will operate in closed network mode.  If
+         set to true(1), then the network mode is closed and the SSID will not
+         be broadcast in beacon packets.  If set to false(2), then the network
+         mode is open and the SSID will be broadcast in beacon packets."
+    ::= { wifiBssEntry 5 }
+
+wifiBssAccessMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                allowAny(1),
+                allowList(2),
+                denyList(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls what stations will be given access to the device.  If set to
+         allowAny(1), then any station will be allowed to connect.  If set
+         to restrictToList(2), then only stations whose MAC address appears in
+         the wifiBssAccessTable will be allowed to connect.  If set to 
+         denyList(3), any station will be allowed to connect except those in 
+         the wifiBssAccessTable."
+    ::= { wifiBssEntry 6 }
+
+
+wifiBssMaxAssociationsLimit OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..128)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Configure the limit of maximum number of stations can associate with 
+         the device."
+    ::= { wifiBssEntry 7 }
+
+wifiBssOpmodeCapRequired OBJECT-TYPE
+    SYNTAX      INTEGER  {
+                none(0),
+                erp(1),
+                ht(2),
+                vht(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Configure operational capability requirement for a STA to associate to the BSS."
+    ::= { wifiBssEntry 8 }
+
+
+wifiBssProtectedMgmtFrames OBJECT-TYPE
+SYNTAX      INTEGER  {
+    off(0),
+    capable(1),
+    required(2)
+}
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Configure Protected Management Frame (PMF) support on Primary or Guest WiFi interface.  
+        PMF configuration is dependent on the security configuration. PMF is configurable only if 
+        security setting for the wireless interface is WPA2 or WPA2-PSK"
+    ::= { wifiBssEntry 9 }
+
+wifiBssPublicAccessMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                private(1),
+                public(2),
+                other(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls how an SSID is defined for the purposes of SSID Steering.  
+         A value of private(1) defines this network as a private network.  
+         A value of public(2) defines this network as a public network and 
+         clients on private network will be steered away from this network. 
+         A value of other(3) effective disables the SSID Steering feature 
+         for this BSS."
+    ::= { wifiBssEntry 10 }
+
+wifiBssMfbProbeResponse OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables MAC Filter Based Probe Response for Access Control. 		 
+        If set to true(1), then MBF Probe Response will be on.
+        Set to false(2) turn offs the MBF Probe Response feature."
+    ::= { wifiBssEntry 11 }
+
+wifiBssAccessTableClear OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Clears the for Access Table for this SSID. 		 
+        If set to true(1), then the Access Table will be cleared.
+        Set to false(2) then the Access Table remains unchanged."
+    ::= { wifiBssEntry 12 }
+
+wifiBssIASSchedulerEnable OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls the IAS scheduler traffic rule.
+        If set to true(1), then the IAS traffic rule for this BSS is enabled.
+	Set to false(2) then the IAS traffic rule for this BSS uses the default scheduler."
+    ::= { wifiBssEntry 13 }
+
+wifiBssIASSchedulerType OBJECT-TYPE
+    SYNTAX      INTEGER {
+                data(1),
+                public(2),
+                video(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Enables IAS per-BSS traffic control by specifying the scheduler type.		 
+        Default value is data - (1).
+	Set to (1) for data, (2) for public, (3) for video."
+    DEFVAL { data }
+    ::= { wifiBssEntry 14 }
+    
+--
+-- wifiMbssSecurity contains objects used to configure security options
+-- of each service set.
+--    
+    
+wifiMbssSecurity OBJECT IDENTIFIER ::= { wifiMbss 3 }
+
+-- Objects used to control WEP based security modes
+
+
+wifiBssWepTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiBssWepEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table used to configure settings related to the WEP security modes."
+    ::= { wifiMbssSecurity 1 }
+    
+wifiBssWepEntry OBJECT-TYPE
+    SYNTAX      WifiBssWepEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry defining the WPA characteristics of an individual service set.
+         A row exists in this table for each row in the wifiBssTable for which
+         wifiBssSecurityMode is set to wep(1) or radiusWep(6)."
+    INDEX   { ifIndex }
+    ::= { wifiBssWepTable 1 }
+    
+WifiBssWepEntry ::= 
+    SEQUENCE    {
+        wifiBssWepDefaultKey           Unsigned32,
+        wifiBssWepEncryptionMode       INTEGER,
+        wifiBssWepPassPhrase           DisplayString
+    }
+    
+wifiBssWepDefaultKey OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the default key which will be used when 64 or
+         128 bit encryption is enabled.  Indicates the entry from the 
+         wifiBssWep64BitKeyTable if wifiEncryptionMode is set to wep64(1), or
+         the entry from the wifiBssWep128BitKeyTable if wifiBssSecurityMode 
+         is set to wep128(2).
+         
+         This object may only be set to indicate an active row in the 
+         wifiBssWep64BitKeyTable or wifiBssWep128BitKeyTable.  If the value 
+         corresponds to a row which does not exist or a row which is not
+         active, the set will be rejected with an inconsistentValue error."
+    ::= { wifiBssWepEntry 1 }
+    
+wifiBssWepEncryptionMode OBJECT-TYPE
+    SYNTAX      INTEGER {
+                wep64(1),
+                wep128(2)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Selects the WEP encryption method used by this service set.
+         If set to wep64(1), then 64 bit WEP encryption will be
+         used with the keys from the wifiBssWep64BitKeyTable.  If set to 
+         wep128(2), then 128 bit WEP encryption will be used with keys from 
+         the wifiBssWep128BitKeyTable."
+    ::= { wifiBssWepEntry 2 }
+    
+wifiBssWepPassPhrase OBJECT-TYPE
+    SYNTAX      DisplayString (SIZE(0..32))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The passphrase used for WEP security."
+    ::= { wifiBssWepEntry 3 }
+    
+    
+wifiBssWep64BitKeyTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiBssWep64BitKeyEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of 40 bit key values used when operating in WEP 64 mode."
+    ::= { wifiMbssSecurity 2 }
+    
+wifiBssWep64BitKeyEntry OBJECT-TYPE
+    SYNTAX      WifiBssWep64BitKeyEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A key to be used by the row in the wifiBssTable identified by the 
+         value of ifIndex in the row index."
+    INDEX   { ifIndex, wifiBssWep64BitKeyIndex }
+    ::= { wifiBssWep64BitKeyTable 1 }
+    
+WifiBssWep64BitKeyEntry ::= 
+    SEQUENCE    {
+        wifiBssWep64BitKeyIndex           Integer32,
+        wifiBssWep64BitKeyValue           OCTET STRING,
+        wifiBssWep64BitKeyStatus          RowStatus
+    }
+    
+wifiBssWep64BitKeyIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..4)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Identifies an instance of a key among those used by the service set 
+         identified by the value of ifIndex in the row index."
+    ::= { wifiBssWep64BitKeyEntry 1 }
+    
+wifiBssWep64BitKeyValue OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(5))
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "A 40 bit key to be used when the corresponding instance of
+         wifiBssSecurityMode is set to wep(1) and the corresponding instance
+         of wifiBssWepEncryptionMode is set to wep64(1)."
+    ::= { wifiBssWep64BitKeyEntry 2 }
+    
+wifiBssWep64BitKeyStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this conceptual row.
+
+         To create a row in this table, a manager must set this object to 
+         either createAndGo(4) or createAndWait(5).
+
+         Until instances of all corresponding columns are appropriately 
+         configured, the value of the corresponding instance of the 
+         wifiBssAccessStatus column is 'notReady'.
+
+         In particular, a newly created row cannot be made active until the 
+         corresponding instance of wifiBssWep64BitKeyValue has been set.
+         
+         Only rows with a status of active(1) will be applied.
+         
+         This object may not be set to a value of notInService(2) or destroy(6)
+         if the corresponding instance of wifiBssWepDefaultKey identifies
+         this row as they current key in use.  Such an attempt will be rejected
+         with an inconsistentValue error."
+    ::= { wifiBssWep64BitKeyEntry 3 }
+    
+    
+wifiBssWep128BitKeyTable OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiBssWep128BitKeyEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of 104 bit key values used when operating in WEP 128 mode."
+    ::= { wifiMbssSecurity 3 }
+    
+wifiBssWep128BitKeyEntry OBJECT-TYPE
+    SYNTAX      WifiBssWep128BitKeyEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A key to be used by the row in the wifiBssTable identified by the 
+         value of ifIndex in the row index."
+    INDEX   { ifIndex, wifiBssWep128BitKeyIndex }
+    ::= { wifiBssWep128BitKeyTable 1 }
+    
+WifiBssWep128BitKeyEntry ::= 
+    SEQUENCE    {
+        wifiBssWep128BitKeyIndex           Integer32,
+        wifiBssWep128BitKeyValue           OCTET STRING,
+        wifiBssWep128BitKeyStatus          RowStatus
+    }
+    
+wifiBssWep128BitKeyIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..4)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Identifies an instance of a key among those used by the service set 
+         identified by the value of ifIndex in the row index."
+    ::= { wifiBssWep128BitKeyEntry 1 }
+    
+wifiBssWep128BitKeyValue OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE(13))
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "A 104 bit key to be used when the corresponding instance of
+         wifiBssSecurityMode is set to wep(1) and the corresponding instance
+         of wifiBssWepEncryptionMode is set to wep128(128)."
+    ::= { wifiBssWep128BitKeyEntry 2 }
+    
+wifiBssWep128BitKeyStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this conceptual row.
+
+         To create a row in this table, a manager must set this object to 
+         either createAndGo(4) or createAndWait(5).
+
+         Until instances of all corresponding columns are appropriately 
+         configured, the value of the corresponding instance of the 
+         wifiBssAccessStatus column is 'notReady'.
+
+         In particular, a newly created row cannot be made active until the 
+         corresponding instance of wifiBssWep128BitKeyValue has been set.
+         
+         Only rows with a status of active(1) will be applied.
+         
+         This object may not be set to a value of notInService(2) or destroy(6)
+         if the corresponding instance of wifiBssWepDefaultKey identifies
+         this row as they current key in use.  Such an attempt will be rejected
+         with an inconsistentValue error."
+    ::= { wifiBssWep128BitKeyEntry 3 }
+
+
+-- Objects used to control WPA based security modes
+    
+wifiBssWpaTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiBssWpaEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table used to configure settings related to the WPA security modes."
+    ::= { wifiMbssSecurity 4 }
+    
+wifiBssWpaEntry OBJECT-TYPE
+    SYNTAX      WifiBssWpaEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry defining the WPA characteristics of an individual service set.
+         A row exists in this table for each row in the wifiBssTable for which
+         wifiBssSecurityMode is set to wpaPsk(2), wpa2Psk(3), wpaEnterprise(4), 
+         or wpa2Enterprise(5)."
+    INDEX   { ifIndex }
+    ::= { wifiBssWpaTable 1 }
+    
+WifiBssWpaEntry ::=
+    SEQUENCE    {
+        wifiBssWpaAlgorithm            INTEGER,
+        wifiBssWpaPreSharedKey         OCTET STRING,
+        wifiBssWpaGroupRekeyInterval   Unsigned32
+    }
+    
+wifiBssWpaAlgorithm OBJECT-TYPE
+    SYNTAX      INTEGER {
+                none(1),
+                aes(2),
+                tkipPlusAes(3)
+    }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the WPA encryption mode used by the service set.  
+         The WPA algorithm for WPA2-PSK and WPA2-Enterprise security mode is 
+         either aes(2) or tkipPlusAes(3).  If feature is disabled, then none (1)
+         is returned."
+    ::= { wifiBssWpaEntry 1 }
+    
+wifiBssWpaPreSharedKey OBJECT-TYPE
+    SYNTAX      OCTET STRING (SIZE (8..64))
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Sets the WPA Pre-Shared Key (PSK) used by this service set.  This 
+         value MUST be either a 64 byte hexadecimal number, OR an 8 to 63 
+         character ASCII string."
+    ::= { wifiBssWpaEntry 2 }
+    
+wifiBssWpaGroupRekeyInterval OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Sets the WPA Group Rekey Interval for this service set. If set to zero, 
+         periodic rekeying is disabled for this service set."
+    ::= { wifiBssWpaEntry 3 }
+    
+
+-- Objects used to control RADIUS based security modes
+
+wifiBssRadiusTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiBssRadiusEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table used to configure settings related to the RADIUS security 
+         modes, including WPA-Enterprise, WPA2-Enterprise and RADIUS-WEP."
+    ::= { wifiMbssSecurity 5 }
+    
+wifiBssRadiusEntry OBJECT-TYPE
+    SYNTAX      WifiBssRadiusEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+         "An entry defining the RADIUS characteristics of an individual service 
+          set.  A row exists in this table for each row in the wifiBssTable 
+          for which wifiBssSecurityMode is set to wpaEnterprise(4), 
+          wpa2Enterprise(5), or radiusWep(6)."
+    INDEX   { ifIndex }
+    ::= { wifiBssRadiusTable 1 }
+    
+WifiBssRadiusEntry ::= 
+    SEQUENCE    {
+        wifiBssRadiusAddressType       InetAddressType,
+        wifiBssRadiusAddress           InetAddress,
+        wifiBssRadiusPort              Unsigned32,
+        wifiBssRadiusKey               DisplayString,
+        wifiBssRadiusReAuthInterval    Unsigned32
+    }
+    
+wifiBssRadiusAddressType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The type of internet address used for wifiBssRadiusAddress."
+    ::= { wifiBssRadiusEntry 1 }
+    
+wifiBssRadiusAddress OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The internet address of the RADIUS server for this service set."
+    ::= { wifiBssRadiusEntry 2 }
+    
+wifiBssRadiusPort OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The UDP port used to communicate with the RADIUS server for this 
+         service set."
+    ::= { wifiBssRadiusEntry 3 }
+    
+wifiBssRadiusKey OBJECT-TYPE
+    SYNTAX      DisplayString
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The RADIUS key."
+    ::= { wifiBssRadiusEntry 4 }
+    
+wifiBssRadiusReAuthInterval OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "The network re-authentication interval.  If set to zero, no
+         re-authentication will be performed."
+    ::= { wifiBssRadiusEntry 5 }
+    
+--
+-- wifiMbssAccess contains objects used to configure access restrictions
+-- of each service set.
+--
+    
+wifiMbssAccess OBJECT IDENTIFIER ::= { wifiMbss 4 }
+
+
+wifiBssAccessTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiBssAccessEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of MAC addresses which defines the MAC address based access 
+         restrictions for the system."
+    ::= { wifiMbssAccess 1 }
+    
+wifiBssAccessEntry OBJECT-TYPE
+    SYNTAX      WifiBssAccessEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A row in the table which specifies a single MAC address for a given
+         service set."
+    INDEX   { ifIndex, wifiBssAccessIndex }
+    ::= { wifiBssAccessTable 1 }
+    
+WifiBssAccessEntry ::= 
+    SEQUENCE    {
+        wifiBssAccessIndex       Integer32,
+        wifiBssAccessStation     PhysAddress,
+        wifiBssAccessStatus      RowStatus
+    }
+    
+wifiBssAccessIndex OBJECT-TYPE
+    SYNTAX      Integer32 (1..16)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Indicates the instance of this table row."
+    ::= { wifiBssAccessEntry 1 }
+    
+wifiBssAccessStation OBJECT-TYPE
+    SYNTAX      PhysAddress
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "A MAC address of a station which will be allowed to connect to the 
+         service set if wifiBssAccessMode is set to restrictToList(2), or
+         forbidden if wifiBssAccessMode is set to denyList(3)."
+    ::= { wifiBssAccessEntry 2 }
+    
+wifiBssAccessStatus OBJECT-TYPE
+    SYNTAX      RowStatus
+    MAX-ACCESS  read-create
+    STATUS      current
+    DESCRIPTION
+        "The status of this conceptual row.
+
+         To create a row in this table, a manager must set this object to 
+         either createAndGo(4) or createAndWait(5).
+
+         Until instances of all corresponding columns are appropriately 
+         configured, the value of the corresponding instance of the 
+         wifiBssAccessStatus column is 'notReady'.
+
+         In particular, a newly created row cannot be made active until the 
+         corresponding instance of wifiBssAccessStation has been set.
+         
+         Only rows with a status of active(1) will be applied."
+    ::= { wifiBssAccessEntry 3 }
+    
+    
+wifiMultimedia OBJECT IDENTIFIER ::= { wifiMgmtMIBObjects 3 }
+
+wifiWmmQosTable   OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiWmmQosEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of WMM Access Categories."
+    ::= { wifiMultimedia 1}
+    
+wifiWmmQosEntry OBJECT-TYPE
+    SYNTAX      WifiWmmQosEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A row in the table which specifies the characteristics of an 
+         individual WMM Access Category like transmit opportunity 
+         retry parameters."
+    INDEX   { ifIndex, wifiWmmAccessCategory }
+    ::= { wifiWmmQosTable 1 }
+
+WifiWmmQosEntry ::= 
+    SEQUENCE    {
+        wifiWmmAccessCategory         INTEGER,
+        wifiWmmShortRetryLimit        Unsigned32,
+        wifiWmmLongRetryLimit         Unsigned32
+    }
+    
+wifiWmmAccessCategory OBJECT-TYPE
+    SYNTAX      INTEGER {
+                background(0), -- AC_BK
+                bestEffort(1), -- AC_BE
+                video(2), -- AC_VI
+                voice(3) -- AC_VO
+    }
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the WMM Access Category."
+    ::= { wifiWmmQosEntry 1 }
+    
+wifiWmmShortRetryLimit OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..15)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the short retry limit for this WMM Access Category."
+    ::= { wifiWmmQosEntry 2 }
+    
+wifiWmmLongRetryLimit OBJECT-TYPE
+    SYNTAX      Unsigned32  (1..15)
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Controls and reflects the long retry limit for this WMM Access Category."
+    ::= { wifiWmmQosEntry 3 }
+    
+
+
+wifiNeighborApsDiagnostics OBJECT IDENTIFIER ::= { wifiMgmtMIBObjects 4 }
+
+wifiNeighborApsDiagnosticState OBJECT-TYPE
+    SYNTAX      INTEGER {none(1),
+                         requested(2),
+                         completed(3),
+                         error(4)
+                        }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "When writing, the only allowed value is 'requested'. When 'requested',
+        the CPE SHOULD wait until after completion of WiFi Neighbor Aps diagnostic scan.
+        When the test is completed, the value of this parameter MUST be either
+        'completed' (when the test completed successfully), or 'error'. After the
+        diagnostic is complete, all wifiNeighborApsTable parameters can be
+        retained by the CPE."
+    ::= { wifiNeighborApsDiagnostics 1 }
+
+wifiNeighborApsTimeStamp OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Time in seconds at which the data is taken from the DUT."
+    ::= { wifiNeighborApsDiagnostics 2 }
+
+wifiNeighborApsNumOfEntries OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of entries in the wifiNeighborApsTable."
+    ::= { wifiNeighborApsDiagnostics 3 }
+
+wifiNeighborApsTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiNeighborApsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of Neighbor Access Point statistics."
+    ::= { wifiNeighborApsDiagnostics 4 }
+
+wifiNeighborApsEntry OBJECT-TYPE
+    SYNTAX      WifiNeighborApsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing neighboring AP information."
+    INDEX   { ifIndex }
+    ::= { wifiNeighborApsTable 1 }
+
+WifiNeighborApsEntry ::=
+    SEQUENCE    {
+        wifiNeighborApBSsid                      PhysAddress,
+        wifiNeighborApSsid                       OCTET STRING,
+        wifiNeighborApRssi                       Integer32,
+        wifiNeighborApNoise                      Integer32,
+        wifiNeighborApChannel                    Unsigned32,
+        wifiNeighborApCtrlChannel                Unsigned32,
+        wifiNeighborApBand                       INTEGER,
+        wifiNeighborApChannelBandwidth           INTEGER,
+        wifiNeighborApMaxRate                    Unsigned32,
+        wifiNeighborApNetworkType                SnmpAdminString,
+        wifiNeighborApMcastRsnType               SnmpAdminString,
+        wifiNeighborApUcastRsnType               SnmpAdminString,
+        wifiNeighborApAkmRsnType                 SnmpAdminString
+    }
+
+wifiNeighborApBSsid OBJECT-TYPE
+    SYNTAX      PhysAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP MAC address."
+    ::= { wifiNeighborApsEntry 1 }
+
+wifiNeighborApSsid OBJECT-TYPE
+    SYNTAX      OCTET STRING
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP name or SSID."
+    ::= { wifiNeighborApsEntry 2 }
+
+wifiNeighborApRssi OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP receive signal strength."
+    ::= { wifiNeighborApsEntry 3 }
+
+wifiNeighborApNoise OBJECT-TYPE
+    SYNTAX      Integer32
+    UNITS       "dBm"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicator of average noise strength (in dBm) received from the
+        neighboring WiFi radio."
+    ::= { wifiNeighborApsEntry 4 }
+
+wifiNeighborApChannel OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP operating channel."
+    ::= { wifiNeighborApsEntry 5 }
+
+wifiNeighborApCtrlChannel OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP operating control channel."
+    ::= { wifiNeighborApsEntry 6 }
+
+wifiNeighborApBand OBJECT-TYPE
+    SYNTAX      INTEGER {band2400MHz(1), -- 2.4 GHz
+                         band5000MHz(2)  -- 5 GHz
+                        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the frequency band at which the radio is operating."
+    ::= { wifiNeighborApsEntry 7 }
+
+wifiNeighborApChannelBandwidth OBJECT-TYPE
+    SYNTAX      INTEGER {
+                         width20MHz(1),
+                         width40MHz(2),
+                         width80MHz(3),
+                         width160MHz(4)
+                        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Indicates the bandwidth at which the channel is operating."
+    ::= { wifiNeighborApsEntry 8 }
+
+wifiNeighborApMaxRate OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Maximum Physical Rate of the AP."
+    ::= { wifiNeighborApsEntry 9 }
+
+wifiNeighborApNetworkType OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Neighboring AP PHY mode (a, b, g, n or ac)."
+    ::= { wifiNeighborApsEntry 10 }
+
+wifiNeighborApMcastRsnType OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Multicast security RSN type."
+    ::= { wifiNeighborApsEntry 11 }
+
+wifiNeighborApUcastRsnType OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Unicast security RSN type."
+    ::= { wifiNeighborApsEntry 12 }
+
+wifiNeighborApAkmRsnType OBJECT-TYPE
+    SYNTAX      SnmpAdminString
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Authentication Key management RSN suite."
+    ::= { wifiNeighborApsEntry 13 }
+
+
+
+wifiAssocStaDiagnostics OBJECT IDENTIFIER ::= { wifiMgmtMIBObjects 5 }
+
+wifiAssocStaTimeStamp OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Time in seconds at which the data is taken from the DUT."
+    ::= { wifiAssocStaDiagnostics 1 }
+
+wifiAssocStaNumOfEntries OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of entries in the wifiAssocStaTable"
+    ::= { wifiAssocStaDiagnostics 2 }
+
+
+wifiAssocStaTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiAssocStaEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of associated STAs stats."
+    ::= { wifiAssocStaDiagnostics 3 }
+
+wifiAssocStaEntry OBJECT-TYPE
+    SYNTAX      WifiAssocStaEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The Conceptual row of wifiAssocStaTable."
+    INDEX   { ifIndex }
+    ::= { wifiAssocStaTable 1 }
+
+WifiAssocStaEntry ::=
+    SEQUENCE    {
+        wifiAssocStaRssi            Integer32,
+        wifiAssocStaPhyRate         Integer32,
+        wifiAssocStaMacAddress      PhysAddress,
+        wifiAssocStaPRequested      Unsigned32,
+        wifiAssocStaPStored         Unsigned32,
+        wifiAssocStaPDropped        Unsigned32,
+        wifiAssocStaPRetried        Unsigned32,
+        wifiAssocStaPUtilization    Unsigned32,
+        wifiAssocStaPQLength        Unsigned32,
+        wifiAssocStaPRtsFail        Unsigned32,
+        wifiAssocStaPRtryDrop       Unsigned32,
+        wifiAssocStaPPSRetry        Unsigned32,
+        wifiAssocStaPAcked          Unsigned32,
+        wifiAssocStaPTput           Unsigned32,
+        wifiAssocStaPPhyRate        Unsigned32
+    }
+
+wifiAssocStaRssi OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "RSSI(Signal Strength) of the STA."
+    ::= { wifiAssocStaEntry 1 }
+
+
+wifiAssocStaPhyRate OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Physical rate of the STA."
+    ::= { wifiAssocStaEntry 2 }
+
+wifiAssocStaMacAddress OBJECT-TYPE
+    SYNTAX      PhysAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "MAC address of the STA."
+    ::= { wifiAssocStaEntry 4 }
+
+wifiAssocStaPRequested OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of packets requested."
+    ::= { wifiAssocStaEntry 5 }
+
+wifiAssocStaPStored OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of packets stored."
+    ::= { wifiAssocStaEntry 6 }
+
+wifiAssocStaPDropped OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of packets dropped."
+    ::= { wifiAssocStaEntry 7 }
+
+wifiAssocStaPRetried OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of packets retried."
+    ::= { wifiAssocStaEntry 8 }
+
+wifiAssocStaPUtilization OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of packets utilized."
+    ::= { wifiAssocStaEntry 9 }
+
+wifiAssocStaPQLength OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The maximum capacity of the WL driver Tx Queue."
+    ::= { wifiAssocStaEntry 10 }
+
+wifiAssocStaPRtsFail OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of RTS failed packets."
+    ::= { wifiAssocStaEntry 11 }
+
+wifiAssocStaPRtryDrop OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of retry dropped packets."
+    ::= { wifiAssocStaEntry 12 }
+
+wifiAssocStaPPSRetry OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of power save retry packets."
+    ::= { wifiAssocStaEntry 13 }
+
+wifiAssocStaPAcked OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Total number of acked packets."
+    ::= { wifiAssocStaEntry 14 }
+
+wifiAssocStaPTput OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "hundredth Mbps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Packet throughput rate of the STA."
+    ::= { wifiAssocStaEntry 15 }
+
+wifiAssocStaPPhyRate OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "hundredth Mbps"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Packet PHY rate of the STA."
+    ::= { wifiAssocStaEntry 16 }
+
+
+
+wifiChannelDiagnostics OBJECT IDENTIFIER ::= { wifiMgmtMIBObjects 6 }
+
+wifiChannelDiagnosticState OBJECT-TYPE
+    SYNTAX      INTEGER {none(1),
+                         requested(2),
+                         completed(3),
+                         error(4)
+                         }
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "When writing, the only allowed value is 'requested' When 'requested',
+        the CPE SHOULD wait until after completion of WiFi Channel diagnostic scan.
+        When the test is completed, the value of this parameter MUST be either
+        'completed' (when the test completed successfully), or 'error'. After the
+        diagnostic is complete, all wifiChannelDiagnosticTable parameters can be
+        retained by the CPE."
+    ::= { wifiChannelDiagnostics 1 }
+
+wifiChannelDiagnosticTimeStamp OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Time in seconds at which the data is taken from the DUT."
+    ::= { wifiChannelDiagnostics 2 }
+
+wifiChannelDiagnosticNumOfEntries OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The number of entries in the wifiChannelDiagnosticTable"
+    ::= { wifiChannelDiagnostics 3 }
+
+wifiChannelDiagnosticTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiChannelDiagnosticEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of channel statistics"
+    ::= { wifiChannelDiagnostics 4 }
+
+wifiChannelDiagnosticEntry OBJECT-TYPE
+    SYNTAX      WifiChannelDiagnosticEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "The Conceptual row of wifiChannelDiagnosticTable"
+    INDEX   { ifIndex }
+    ::= { wifiChannelDiagnosticTable 1 }
+
+WifiChannelDiagnosticEntry ::=
+    SEQUENCE    {
+        wifiChanDiagChannel                  Unsigned32,
+        wifiChanDiagBand                     INTEGER,
+        wifiChanDiagBandwidth                INTEGER,
+        wifiChanDiagAvailCap                 Unsigned32,
+        wifiChanDiagNonWifiInterf            Unsigned32
+    }
+
+wifiChanDiagChannel OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Channel number for which the current row's statistics refers."
+    ::= { wifiChannelDiagnosticEntry 1 }
+
+wifiChanDiagBand OBJECT-TYPE
+    SYNTAX      INTEGER {band2400MHz(1), -- 2.4 GHz
+                         band5000MHz(2)  -- 5 GHz
+                         }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Current Band that AP is operating in. Either the 2.4G or
+         the 5G Hz."
+    ::= { wifiChannelDiagnosticEntry 2 }
+
+wifiChanDiagBandwidth OBJECT-TYPE
+    SYNTAX      INTEGER {width20MHz(1),
+                         width40MHz(2),
+                         width80MHz(3),
+                         width160MHz(4)
+                        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Current Bandwidth that AP is operating in. Either the
+         20MHz, 40MHz, 80MHz or 160MHz."
+    ::= { wifiChannelDiagnosticEntry 3 }
+
+wifiChanDiagAvailCap OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Bandwidth that is available for use. Calculated using following.
+
+        All received frames received from AP/STAs that are within the BSS of the receiving
+        terminal.
+
+        Number of transmissions that are followed by a good expected response from
+        the receiving terminal.
+
+        Number of transmissions that receive a bad response (unexpected or bad FCS)
+        or do not receive any response from the receiving terminal.
+
+        TXOP is calculated in percentage, ranging from 0 to 100. It is the
+        percentage of time that the free slot is available for transmit."
+    ::= { wifiChannelDiagnosticEntry 4 }
+
+wifiChanDiagNonWifiInterf OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Non Wi-Fi traffic. Calculated using following.
+
+        All received 802.11 frames that are corrupted at the receiver (bad FCS)
+        and also control frames.
+
+        All received frames with invalid PLCPs and CRS glitches."
+    ::= { wifiChannelDiagnosticEntry 5 }
+
+
+
+wifiMetrics OBJECT IDENTIFIER ::= { wifiMgmtMIBObjects 7 }
+
+wifiMetricsTable  OBJECT-TYPE
+    SYNTAX      SEQUENCE OF WifiMetricsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "A table of wifi metrics."
+    ::= { wifiMetrics 1 }
+
+wifiMetricsEntry OBJECT-TYPE
+    SYNTAX      WifiMetricsEntry
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "An entry describing wifi metrics."
+    INDEX   { ifIndex }
+    ::= { wifiMetricsTable 1 }
+
+WifiMetricsEntry ::=
+    SEQUENCE    {
+        wifiMetricsRxCrsGlitch         Unsigned32,
+        wifiMetricsRxBadFcs            Unsigned32,
+        wifiMetricsRxBadPlcp           Unsigned32,
+        wifiMetricsTimeStamp           Unsigned32
+    }
+
+wifiMetricsRxCrsGlitch OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The total number of frames for which phy was able to correlate the
+        preamble but not the header."
+    ::= { wifiMetricsEntry 1 }
+
+wifiMetricsRxBadFcs OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The total number of frames for which the CRC check failed in the MAC."
+    ::= { wifiMetricsEntry 2 }
+
+wifiMetricsRxBadPlcp OBJECT-TYPE
+    SYNTAX      Unsigned32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The total number of frames for which parity check of the PLCP header failed."
+    ::= { wifiMetricsEntry 3 }
+
+wifiMetricsTimeStamp OBJECT-TYPE
+    SYNTAX      Unsigned32
+    UNITS       "seconds"
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "Time in seconds at which the data is taken from the DUT."
+    ::= { wifiMetricsEntry 4 }
+
+--
+-- Conformances
+--
+
+END

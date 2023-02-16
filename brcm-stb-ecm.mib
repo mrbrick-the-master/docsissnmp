@@ -1,0 +1,194 @@
+--****************************************************************************
+--
+-- Copyright (c) 2009-2014 Broadcom Corporation
+--
+-- This program is the proprietary software of Broadcom Corporation and/or
+-- its licensors, and may only be used, duplicated, modified or distributed
+-- pursuant to the terms and conditions of a separate, written license
+-- agreement executed between you and Broadcom (an "Authorized License").
+-- Except as set forth in an Authorized License, Broadcom grants no license
+-- (express or implied), right to use, or waiver of any kind with respect to
+-- the Software, and Broadcom expressly reserves all rights in and to the
+-- Software and all intellectual property rights therein.  IF YOU HAVE NO
+-- AUTHORIZED LICENSE, THEN YOU HAVE NO RIGHT TO USE THIS SOFTWARE IN ANY WAY,
+-- AND SHOULD IMMEDIATELY NOTIFY BROADCOM AND DISCONTINUE ALL USE OF THE
+-- SOFTWARE.
+--
+-- Except as expressly set forth in the Authorized License,
+--
+-- 1.     This program, including its structure, sequence and organization,
+-- constitutes the valuable trade secrets of Broadcom, and you shall use all
+-- reasonable efforts to protect the confidentiality thereof, and to use this
+-- information only in connection with your use of Broadcom integrated circuit
+-- products.
+--
+-- 2.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, THE SOFTWARE IS PROVIDED
+-- "AS IS" AND WITH ALL FAULTS AND BROADCOM MAKES NO PROMISES, REPRESENTATIONS
+-- OR WARRANTIES, EITHER EXPRESS, IMPLIED, STATUTORY, OR OTHERWISE, WITH
+-- RESPECT TO THE SOFTWARE.  BROADCOM SPECIFICALLY DISCLAIMS ANY AND ALL
+-- IMPLIED WARRANTIES OF TITLE, MERCHANTABILITY, NONINFRINGEMENT, FITNESS FOR
+-- A PARTICULAR PURPOSE, LACK OF VIRUSES, ACCURACY OR COMPLETENESS, QUIET
+-- ENJOYMENT, QUIET POSSESSION OR CORRESPONDENCE TO DESCRIPTION. YOU ASSUME
+-- THE ENTIRE RISK ARISING OUT OF USE OR PERFORMANCE OF THE SOFTWARE.
+--
+-- 3.     TO THE MAXIMUM EXTENT PERMITTED BY LAW, IN NO EVENT SHALL BROADCOM
+-- OR ITS LICENSORS BE LIABLE FOR (i) CONSEQUENTIAL, INCIDENTAL, SPECIAL,
+-- INDIRECT, OR EXEMPLARY DAMAGES WHATSOEVER ARISING OUT OF OR IN ANY WAY
+-- RELATING TO YOUR USE OF OR INABILITY TO USE THE SOFTWARE EVEN IF BROADCOM
+-- HAS BEEN ADVISED OF THE POSSIBILITY OF SUCH DAMAGES; OR (ii) ANY AMOUNT IN
+-- EXCESS OF THE AMOUNT ACTUALLY PAID FOR THE SOFTWARE ITSELF OR U.S. $1,
+-- WHICHEVER IS GREATER. THESE LIMITATIONS SHALL APPLY NOTWITHSTANDING ANY
+-- FAILURE OF ESSENTIAL PURPOSE OF ANY LIMITED REMEDY.
+--
+--**************************************************************************
+--    Filename: brcm-stb-ecm.mib
+--    Author:   Maurice Turcotte
+--    Creation Date: 10 MAR 09
+--
+--**************************************************************************
+--    Description:
+--
+--		enterprise MIB for eCM data on a cable STB
+--		
+--**************************************************************************
+--    Revision History:
+--
+--**************************************************************************
+
+BRCM-STB-ECM-MGMT-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+    MODULE-IDENTITY,
+    OBJECT-TYPE,
+    Integer32
+        FROM SNMPv2-SMI
+    TruthValue,
+    MacAddress
+        FROM SNMPv2-TC 
+    InetAddress,
+    InetAddressType
+        FROM INET-ADDRESS-MIB
+    brcmCableStbMgmt
+        FROM BRCM-STB-MIB;
+                
+stbEcmMgmt MODULE-IDENTITY
+    LAST-UPDATED "201406200000Z"
+    ORGANIZATION "Broadcom Corporation"
+    CONTACT-INFO
+        "	BANANA-CABLEDATA
+                (cableData branch of the
+                Broadcom Assigned Numbers and Naming Authority)
+                Broadcom Corporation
+
+        Postal: 4385 River Green Parkway
+                Duluth, GA  30096
+                USA
+
+           Tel: +1 770 232-0018
+
+        E-mail: banana-cabledata@broadcom.com"
+    DESCRIPTION
+        "Broadcom proprietary MIB for runtime management and configuration
+         of objects related to parental control."
+    REVISION      "201406200000Z"
+    DESCRIPTION
+         "Changed INTEGER to Integer32 for smilint."
+    REVISION      "200903100000Z"
+    DESCRIPTION
+         "Initial version of this MIB module."
+    ::= { brcmCableStbMgmt 1 }
+    
+stbEcmAddr OBJECT IDENTIFIER ::= { stbEcmMgmt 1 }
+stbEcmPhy OBJECT IDENTIFIER ::= { stbEcmMgmt 2 }
+
+-- stbEcmAddr group
+
+stbEcmMacAddr OBJECT-TYPE
+    SYNTAX      MacAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The MAC Address of the eCM DOCSIS Cable Modem. This 
+         is usually the same as ifPhysAddress.4. "
+    ::= { stbEcmAddr 1 }
+
+stbEcmIpAddrType OBJECT-TYPE
+    SYNTAX      InetAddressType
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The address type of the stbEcmIpAddr object."
+    ::= { stbEcmAddr 2 }
+
+stbEcmIpAddr OBJECT-TYPE
+    SYNTAX      InetAddress
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The primary address of the eCM Cable Modem interface.
+         If the Cable Modem has not ranged, registered, and 
+         DHCPed an address, then this object takes a value of
+         0.0.0.0 and the corresponding stbEcmIpAddrType takes
+         the value ipv4. "
+    ::= { stbEcmAddr 3 }
+
+-- stbEcmPhy group
+
+stbEcmDsCarrierLock OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        " This object indicates whether the downstream has locked.
+        A value of true means that the downstream is locked."
+    ::= { stbEcmPhy 1 }
+
+stbEcmUpScdmaStatus OBJECT-TYPE
+    SYNTAX      INTEGER {
+                         unknown (0),
+                         notScdma (1),
+                         scdmaTcm (2),
+                         scdmaTdma (3),
+                         scdmaOther (4)
+                        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This object is a remapping of the value of docsIfChannelType.
+         If docsIfChannelType is unknown(0) then this object takes the
+         value unknown(0). If docsIfChannelType is tdma(1) then this 
+         object takes the value scdmaTdma(3). If docsIfChannelType is 
+         atdma(2) then this object takes the value scdmaOther(4). If 
+         docsIfChannelType is scdma(3) then this object takes the value
+         scdmaTcm(2). If docsIfChannelType is tdmaAndAtdma(4) then this
+         object takes the value scdmaOther(4)."
+    ::= { stbEcmPhy 2 }
+
+stbEcmUsModulationType OBJECT-TYPE
+    SYNTAX      INTEGER {
+                         unknown (0),
+                         qpsk (1),
+                         qam2 (2),
+                         qam8 (3),
+                         qam16 (4),
+                         qam32 (5),
+                         qam64 (6),
+                         qam128 (7),
+                         qam256 (8),
+                         qam512 (9)
+                        }
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "The upstream modulation type."
+    ::= { stbEcmPhy 3 }
+
+stbEcmUsSymbolRate OBJECT-TYPE
+    SYNTAX      Integer32
+    MAX-ACCESS  read-only
+    STATUS      current
+    DESCRIPTION
+        "This upstream symbol rate."
+    ::= { stbEcmPhy 4 }
+
+END
