@@ -1,0 +1,24 @@
+TCOMLABS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+   MODULE-IDENTITY,
+   enterprises
+       FROM SNMPv2-SMI;
+
+tComLabs MODULE-IDENTITY
+   LAST-UPDATED "200309260000Z" 
+   ORGANIZATION "tComLabs NV"
+   CONTACT-INFO
+       "Wim De Ketelaere 
+        Stapelplein 70/4
+        B-9000 Ghent
+        Belgium
+        Tel: +32 9 269 22 91
+        Fax: +32 9 329 31 74
+        Email: deketelaere@tcomlabs.com"
+   DESCRIPTION
+        "This MIB module supplies the basic management
+        object categories for tComLabs."
+   ::= { enterprises 7432 }
+
+END

@@ -1,0 +1,390 @@
+--**************************************************************************
+--                                                                          
+--    Copyright 2019 Technicolor, Inc.
+--    All Rights Reserved                                                   
+--    No portions of this material may be reproduced in any
+--    form without the written permission of:
+--        Technicolor Connected Home
+--        5030 Sugarloaf Parkway
+--        Lawrenceville, GA 30044
+--        USA
+--                                                 
+--**************************************************************************
+
+TCH-HARDWARE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+	MODULE-IDENTITY,
+	OBJECT-TYPE,
+	enterprises
+		FROM SNMPv2-SMI
+	SnmpAdminString
+		FROM SNMP-FRAMEWORK-MIB;
+
+tchHardware MODULE-IDENTITY
+	LAST-UPDATED    "201904220000Z"
+	ORGANIZATION    "Technicolor, Inc."
+	CONTACT-INFO    "http://www.technicolor.com"
+	DESCRIPTION
+		"This module contains objects which report hardware identity information about a device."
+	
+	REVISION        "201803270000Z"
+	DESCRIPTION     "New bcm4352 value added for tchHwWiFiChipsetModel"
+
+	REVISION        "201703200000Z"
+	DESCRIPTION     "New tchHwDescrSlic value added"
+	
+	REVISION        "201609070000Z"
+	DESCRIPTION     "Initial module release."
+
+	REVISION 	      "201904220000Z"
+	DESCRIPTION     "Added new slic types"
+	
+	::= { tchVoip 4 }
+	
+
+technicolor				OBJECT IDENTIFIER ::= { enterprises 46366 }
+tchCableBroadband		OBJECT IDENTIFIER ::= { technicolor 4292 }
+tchVoip      		 OBJECT IDENTIFIER ::= { tchCableBroadband 78 }
+tchHwDescr				OBJECT IDENTIFIER ::= { tchHardware 1 }
+
+tchHwDescrModel OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns the model name of this device."
+    ::= { tchHwDescr 1 }
+
+tchHwDescrHardwareVersion OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns the hardware version of the device."
+    ::= { tchHwDescr 2 }
+
+tchHwDescrSerialNumber OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns the device's serial number."
+    ::= { tchHwDescr 3 }
+
+tchHwDescrCmMacAddress OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns the MAC address of the device's cable modem interface."
+    ::= { tchHwDescr 4 }
+
+tchHwDescrManufactureDate OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns the date (MM/YYYY) when the device was manufactured."
+    ::= { tchHwDescr 5 }
+
+tchHwDescrPowerSupply OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        internal-switching(1),
+        external(2)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns the type of power supply used by the device."
+    ::= { tchHwDescr 6 }
+
+tchHwDescrMainProcessor OBJECT-TYPE
+	SYNTAX INTEGER 
+		{
+		bcm3383(1),
+		bcm33843(2),
+		bcm3384(3),
+		bcm3385(4),
+		bcm3390a0(5),
+		bcm3390b0(6),
+		bcm3390R(7),
+		bcm3390S(8),
+		bcm3390V(9)
+		}
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns the model of the main SoC processor used by the device."
+    ::= { tchHwDescr 8 }
+
+tchHwDescrTuner OBJECT-TYPE
+	SYNTAX INTEGER {
+		bcmInternal(0)
+	}
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Returns information about the device's RF tuner."
+	::= { tchHwDescr 9 }
+
+tchHwDescrSlic OBJECT-TYPE
+	SYNTAX INTEGER
+		{
+		none(0),
+		le9500b(1),
+		le9500c(2),
+		le9500d(3),
+		le9520ddtc(4),
+		le88276(5),
+		le9530d(6),
+		le9500s(7),
+		le9520s(8),
+		le9540d(9),
+		le9531d(10),
+		zl88702(11),
+		le9541d(12),
+		le9652(13),
+		silab32261(14),
+		si32282(15),
+		si32392(16)
+		}
+	MAX-ACCESS    read-only
+	STATUS        current
+	DESCRIPTION
+		"Returns the model of SLIC equipped (if any)."
+	::= { tchHwDescr 10 }
+
+tchHwDescrMemoryMain OBJECT-TYPE
+	SYNTAX INTEGER
+	UNITS "Megabytes"
+	MAX-ACCESS    read-only
+	STATUS        current
+	DESCRIPTION
+		"Returns the total DRAM equipped in the device."
+	::= { tchHwDescr 11 }
+
+tchHwDescrMemoryFlash OBJECT-TYPE
+	SYNTAX INTEGER
+	UNITS "Megabytes"
+	MAX-ACCESS    read-only
+	STATUS        current
+	DESCRIPTION
+		"Returns the total amount of flash memory equipped in the device."
+	::= { tchHwDescr 12 }
+	
+tchHwWiFiChipsetTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF TchHwWiFiChipsetEntry
+	MAX-ACCESS	not-accessible
+	STATUS	current
+	DESCRIPTION
+		"Table containing information about 802.11 wireless radios equipped in the device."
+	::= { tchHwDescr 13 }
+
+tchHwWiFiChipsetEntry OBJECT-TYPE
+	SYNTAX	TchHwWiFiChipsetEntry
+	MAX-ACCESS	not-accessible
+	STATUS	current
+	DESCRIPTION	
+		"Entries containing information about 802.11 wireless radios equipped in the device."
+	INDEX { tchHwWiFiChipsetIndex }
+	::= { tchHwWiFiChipsetTable 1 }
+
+TchHwWiFiChipsetEntry ::= SEQUENCE
+	{
+	tchHwWiFiChipsetIndex	INTEGER,
+	tchHwWiFiChipsetModel	INTEGER
+	}
+
+tchHwWiFiChipsetIndex OBJECT-TYPE
+	SYNTAX	INTEGER (1..2)
+	MAX-ACCESS	not-accessible
+	STATUS	current
+	DESCRIPTION
+		"Table index."
+	::= { tchHwWiFiChipsetEntry 1 }
+
+tchHwWiFiChipsetModel OBJECT-TYPE
+	SYNTAX INTEGER {
+		none(0),
+		bcm43217(1),
+		bcm4331(2),
+		bcm4360(3),
+		bcm4366(4),
+		qv840(5),
+		bcm4352(6)
+	}
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Returns the vendor and model information for a wireless radio chipset."
+	::= { tchHwWiFiChipsetEntry 2 }
+
+tchHwIoTRadioSupport OBJECT IDENTIFIER ::= { tchHwDescr 14 }
+
+tchHwIoTRadioSupportZigBee OBJECT-TYPE
+	SYNTAX INTEGER {
+		none(0),
+		silabs(1)
+	}
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Information about ZigBee radio chipset equipped (if any)."
+	::= { tchHwIoTRadioSupport 1 }
+
+tchHwIoTRadioSupportZWave OBJECT-TYPE
+	SYNTAX INTEGER {
+		none(0)
+	}
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Information about Z-Wave radio chipset equipped (if any)."
+	::= { tchHwIoTRadioSupport 2 }
+
+tchHwIoTRadioSupportBLE OBJECT-TYPE
+	SYNTAX INTEGER {
+		none(0),
+		silabs(1)
+	}
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Information about Bluetooth low energy chipset equipped (if any)."
+	::= { tchHwIoTRadioSupport 3 }
+
+tchHwIoTRadioSupportThread OBJECT-TYPE
+	SYNTAX INTEGER {
+		none(0),
+		bcmInternal(1)
+	}
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Information about Thread radio chipset equipped (if any)."
+	::= { tchHwIoTRadioSupport 4 }
+
+tchHwIoTRadioSupportNFC OBJECT-TYPE
+	SYNTAX INTEGER {
+		none(0),
+		tiTRF7970A(1)
+	}
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Information about NFC chipset equipped (if any)."
+	::= { tchHwIoTRadioSupport 5 }
+
+tchHwDescrFactoryId OBJECT-TYPE
+	SYNTAX	INTEGER
+	MAX-ACCESS	read-only
+	STATUS	current
+	DESCRIPTION
+		"Factory ID"
+	::= { tchHwDescr 17 }
+	
+tchHwDescrMocaType OBJECT-TYPE
+    SYNTAX INTEGER {
+        none(0),
+        en2210(1),
+        en2510(2),
+        en2710(3),
+		vxc1030(4),
+		bcm6803(5),
+		ad9965(6),
+		moca20wBCM(7),
+		en2810 (8)
+		}
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "For devices with discrete MoCA chipsets, this MIB returns the chipset model information.
+		For devices with MoCA support provided by the main SoC, this MIB returns generic MoCA version information."
+    ::= { tchHwDescr 19 }
+
+tchHwDescrEthSwitch OBJECT-TYPE
+    SYNTAX INTEGER {
+        none(0),
+        bcm5325m(1),
+        marv6095f(2),
+        bcm5325e(3),
+        bcm53115s(4),
+        ar8316(5),
+	    bcm53101e(6),
+	    bcm53124s(7),
+        marv6172(8),
+        internalBCM(9)		
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "Returns information about the device's Ethernet switch."
+    ::= { tchHwDescr 20 }
+
+tchHwDescrUpstreamPA OBJECT-TYPE
+	SYNTAX INTEGER {
+		max3522(0),
+		nxp3031(1),
+		nxp3131(2)
+	}
+	MAX-ACCESS    read-only
+	STATUS        current
+	DESCRIPTION
+		"Returns information about the device's upstream power amplifier."
+	::= { tchHwDescr 21 }
+
+tchHwDescrBoardVersion OBJECT-TYPE
+	SYNTAX SnmpAdminString
+	MAX-ACCESS read-only
+	STATUS current
+	DESCRIPTION
+		"Returns factory HW board version."
+	::= { tchHwDescr 22 }
+
+
+tchHwDescrIntCount OBJECT IDENTIFIER ::= { tchHwDescr 101 }
+
+tchHwDescrIntCountEthernet OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { tchHwDescrIntCount 1 }
+
+tchHwDescrIntCountUsb OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { tchHwDescrIntCount 2 }
+
+tchHwDescrIntCountPhoneLine OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { tchHwDescrIntCount 3 }
+
+tchHwDescrIntCountMaxBattery OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { tchHwDescrIntCount 4 }
+
+tchHwDescrIntCountWireless OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { tchHwDescrIntCount 5 }
+
+
+END

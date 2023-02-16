@@ -1,0 +1,503 @@
+--**************************************************************************
+--                                                                          
+--    Copyright 2016 Technicolor, Inc.
+--    All Rights Reserved                                                   
+--    No portions of this material may be reproduced in any
+--    form without the written permission of Technicolor.
+--                                                 
+--**************************************************************************
+ 
+TCH-TR069-MIB DEFINITIONS ::= BEGIN
+IMPORTS
+     MODULE-IDENTITY, 
+     OBJECT-TYPE,
+     enterprises
+             FROM SNMPv2-SMI
+     TruthValue
+             FROM SNMPv2-TC
+     SnmpAdminString 
+             FROM SNMP-FRAMEWORK-MIB
+     InetAddressType,
+     InetAddress
+             FROM INET-ADDRESS-MIB ;
+
+tchTR069 MODULE-IDENTITY
+     LAST-UPDATED    "202010130000Z"
+     ORGANIZATION    "Technicolor, Inc."
+     CONTACT-INFO    "http://www.technicolor.com"
+     DESCRIPTION
+         "Controls the configuration of TR-069 CWMP Client"
+
+     -- History
+	REVISION     "202010130000Z"
+	DESCRIPTION
+         "Added tchTR069ClientBasicAuthentication"
+
+	REVISION     "201609130000Z"
+	DESCRIPTION
+         "Initial version.  Converted from SA/Cisco mib definition."
+         
+	::= { tchModule 6 }
+
+tch           OBJECT IDENTIFIER ::= { enterprises 46366 }
+tchCableBroadband OBJECT IDENTIFIER ::= { tch 4292 }
+tchModule         OBJECT IDENTIFIER ::= { tchCableBroadband 79 }
+ 
+tchTR069ClientConfig   OBJECT IDENTIFIER ::=  { tchTR069 1 }
+
+tchTR069ClientMode OBJECT-TYPE
+    SYNTAX INTEGER  {
+        disable(0),
+        enable(1)
+        }
+    MAX-ACCESS  read-write 
+    STATUS      current
+    DESCRIPTION  
+            "Enabling this MIB starts the TR-069 client to communicate with ACS.
+             For TR181,this parameter is always return enable.
+            "
+    DEFVAL { 0 }
+    ::= { tchTR069ClientConfig 1 }
+
+tchTR069ClientAcsUrl OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        " Sets the ACS Management Server URL.
+          This parameter is stored in non-vol and is NULL by default.
+          For TR181,Sets the value via CM config or snmp. if not, it always return NULL.
+          forex: 'http://myacs.acs.lab.sa
+        "
+    ::= { tchTR069ClientConfig 2 }
+    
+tchTR069ClientAcsUsername OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        " Sets the username associated with the ACS Management Server.
+          This parameter is stored in non-vol and is NULL by default.
+          For TR181,Sets the value via CM config or snmp. if not, it always return NULL.
+        "
+    ::= { tchTR069ClientConfig 3 }
+
+tchTR069ClientAcsPassword OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        " Sets the password associated with the ACS Management Server.
+          This parameter is stored in non-vol and is NULL by default.
+      
+          NOTE: This should be a hidden value in SNMPGET/SNMPWALK but user 
+                should be able to set this using SNMPSET
+        "
+    ::= { tchTR069ClientConfig 4 }
+    
+tchTR069ClientCrUsername OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        " Set the username associated with the connection request from the ACS.
+          This parameter is stored in non-vol and is NULL by default.
+          For TR181,Sets the value via CM config or snmp. if not, it always return NULL.
+        "
+    ::= { tchTR069ClientConfig 5 }
+
+tchTR069ClientCrPassword OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        " Set the password associated with the connection request from the ACS.
+          This parameter is stored in non-vol and is NULL by default.    
+          
+          NOTE: This should be a hidden value in SNMPGET/SNMPWALK but user 
+                should be able to set this using SNMPSET
+        "
+    ::= { tchTR069ClientConfig 6 }
+    
+
+tchTR069ClientPeriodicInform OBJECT-TYPE 
+    SYNTAX INTEGER  {
+        disable(0),
+        enable(1)
+        }
+    MAX-ACCESS  read-write 
+    STATUS      current
+    DESCRIPTION  
+            "Enable the TR-069 client, allowing informs to occur at the periodic rate."
+    DEFVAL { 1 }
+    ::= { tchTR069ClientConfig 7 }
+
+tchTR069ClientPeriodicInformInterval OBJECT-TYPE 
+    SYNTAX INTEGER  (1..2147483647)
+    UNITS	"Seconds"	
+    MAX-ACCESS  read-write 
+    STATUS      current
+    DESCRIPTION  
+            "Specify the periodic inform interval in seconds.
+             Not advisable to have inform interval less than 180 seconds (3 min).
+             For CWMP, the default value is 600.
+             For TR181, the default value is 300.
+            "
+    DEFVAL { 300 }
+    ::= { tchTR069ClientConfig 8 }
+
+tchTR069ClientAllowDocsisConfig OBJECT-TYPE 
+    SYNTAX INTEGER  {
+        disable(0),
+        enable(1)
+        }
+    MAX-ACCESS  read-write 
+    STATUS      current
+    DESCRIPTION  
+            "In operation, X_DOCSIS_AllowDocsisConfiguration in a factory-defaulted cable modem will be true, 
+             allowing the device to contact its ACS or an activation server using either a factory-default 
+             ACS URL and other parameters, or ACS URL and other parameters supplied in the DOCSIS configuration file.
+             Once the initial contact is established the ACS modifies the URL, and X_DOCSIS_AllowDocsisConfiguration 
+             is automatically set to false. Subsequent re-booting of the device will use the modified address is accordance with TR-069.
+             The ACS may relinquish this control by explicitly setting X_DOCSIS_AllowDocsisConfiguration to false. 
+             The next time the device reboots the URL can again be accepted from the DOCSSIS configuration file.
+             X_DOCSIS_AllowDocsisConfiguration also defaults to true, so resetting the device to factory defaults 
+             also re-enables the DOCSIS configuration file."
+    DEFVAL { 1 }
+    ::= { tchTR069ClientConfig 9 }
+
+
+tchTR069ClientConnReqUrl OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        " This is set by default during the initial bootup and always uses port with it.
+          Connection Request URL is used by the ACS to solicit Gateway and make the client checkin to ACS.
+          This parameter is stored in non-vol.
+          For CWMP ,the default port is 30005,and is http://<rg-wan-ip>:30005/ by default.
+          For TR181,the default port is 7547,and is http://<rg-wan-ip>:7547/ by default.
+        "
+    ::= { tchTR069ClientConfig 10 }
+
+tchTR069ClientAcsControlPanelUrl OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+        " This mib is only supported by CWMP.
+          Set by the ACS when the client checks in. The user is re-directed to this link when try to access local GUI
+          This parameter is stored in non-vol and is NULL by default.
+        "
+    ::= { tchTR069ClientConfig 11 }
+
+tchTR069ClientDeviceIdentifier OBJECT-TYPE
+   SYNTAX INTEGER {
+       useSerialNumber(0),
+       useCmMacAddress(1)
+   }
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
+       "Defines the value used to identify this device with the ACS.  This value will show up in the ACS server under the Serial Number field.
+             useSerialNumber(0):       The InternetGatewayDevice.DeviceInfo.SerialNumber parameter will return the device's serial number (e.g. 234567890).
+             useCmMacAddress(1):    The InternetGatewayDevice.DeviceInfo.SerialNumber parameter will return the device's CM MAC address (e.g. 00407B1A2B3C).
+       "
+   DEFVAL { 0 }
+   ::= { tchTR069ClientConfig 12 }
+
+tchTR069ClientCwmpVersion OBJECT-TYPE
+    SYNTAX INTEGER {
+        cwmp-1-0(0),
+        cwmp-1-1(1),
+        cwmp-1-2(2),
+        cwmp-1-3(3)
+        }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "This mib is only supported by TR181.
+         The current cwmp version.
+        "
+    ::= { tchTR069ClientConfig 13 }
+
+tchTR069ClientDefaultAcsPort OBJECT-TYPE
+    SYNTAX INTEGER (1..65535)
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "This mib is only supported by TR181.
+         Sets the default port to use for ACS connections. This value is used if no port is specified in the ACS URL.
+        "
+    DEFVAL { 80 }
+    ::= { tchTR069ClientConfig 14 }
+
+tchTR069ClientDefaultCRPort OBJECT-TYPE
+    SYNTAX INTEGER (1..65535)
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        " This mib is only supported by TR181. 
+          Sets the default port to use for ACS connections.
+        "
+    DEFVAL { 7547 }
+    ::= { tchTR069ClientConfig 15 }
+
+tchTR069ClientACSOverride OBJECT-TYPE
+   SYNTAX INTEGER {
+       disable(0),
+       enable(1)
+   }
+   MAX-ACCESS   read-write
+   STATUS       current
+   DESCRIPTION
+       "This mib is only supported by TR181.
+        Specifies whether the ACS URL must always be the config file value or may be overridden from the ACS.
+       "
+   DEFVAL { 1 }
+   ::= { tchTR069ClientConfig 16 }
+
+tchTR069ClientIpStack OBJECT-TYPE
+   SYNTAX INTEGER {
+       ip-stack3(3)
+   }
+   MAX-ACCESS   read-only
+   STATUS       current
+   DESCRIPTION
+       "This mib is only supported by TR181.
+        The ip stack used for cwmp.
+       "
+   DEFVAL { 3 }
+   ::= { tchTR069ClientConfig 17 }
+
+tchTR069ClientBasicAuthentication OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "By default Basic Authentication is disabled.  By setting mib value Basic Authentication
+	 is enabled.  Value is persistent
+        "
+    ::= { tchTR069ClientConfig 18 }
+
+tchTR069DhcpOption   OBJECT IDENTIFIER ::=  { tchTR069 2 }
+
+tchTR069AllowUseDhcpOpts OBJECT-TYPE
+    SYNTAX INTEGER  {
+        disable(0),
+        enable(1)
+        }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "This mib is only supported by TR181.
+         Enables whether to look for configuration options from DHCP.
+        "
+    DEFVAL { 1 }
+    ::= { tchTR069DhcpOption 1 }
+
+tchTR069URL OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..255))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        Sets the ACS Management Server URL.This is used for Dhcp Options.
+        Sets the value via Dhcp Option or snmp. if not, it always return NULL.
+       "
+    ::= { tchTR069DhcpOption 2 }
+
+tchTR069ProvisioningCode OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        get/set Provisioning Code.This is used for Dhcp Options.
+        Sets the value via Dhcp Option or snmp. if not, it always return NULL.
+       "
+    ::= { tchTR069DhcpOption 3 }
+
+tchTR069CWMPRetryMinimumWaitInterval OBJECT-TYPE
+    SYNTAX INTEGER (0..65535)
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        get/set cwmp retry minimum wait interval.This is used for Dhcp Options.
+        Sets the value via Dhcp Option or snmp. if not, it always return 0.
+       "
+    DEFVAL { 0 }
+    ::= { tchTR069DhcpOption 4 }
+
+tchTR069CWMPRetryIntervalMultiplier OBJECT-TYPE
+    SYNTAX INTEGER (1000..65535)
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        getCWMP retry interval multiplier. This is used for Dhcp Options. 
+        Sets the value via Dhcp Option or snmp. if not, it always return 5000.
+       "
+    DEFVAL { 5000 }
+    ::= { tchTR069DhcpOption 5 }
+
+tchTR069ManufacturerOUI OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The value for ManufacturerOUI,This is used for Dhcp Options.
+       "
+    ::= { tchTR069DhcpOption 6 }
+
+tchTR069SerialNumber OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The InternetGatewayDevice.DeviceInfo.SerialNumber parameter.
+       "
+    ::= { tchTR069DhcpOption 7 }
+
+tchTR069ProductClass OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The class of product. This is used for Dhcp Options.
+       "
+    ::= { tchTR069DhcpOption 8 }
+
+tchTR069DataModelParameters   OBJECT IDENTIFIER ::=  { tchTR069 3}
+
+tchTR069DeviceManufacturer OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The value of Manufacturer is 'Broadcom'.
+       "
+    ::= { tchTR069DataModelParameters 1 }
+
+tchTR069DeviceManufacturerOUI OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The value of ManufacturerOUI is '001018'
+       "
+    ::= { tchTR069DataModelParameters 2 }
+
+tchTR069DeviceModelName OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        show the product model name.
+       "
+    ::= { tchTR069DataModelParameters 3 }
+
+tchTR069DeviceDescription OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..256))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        same as SNMP sysDescr object.
+       "
+    ::= { tchTR069DataModelParameters 4 }
+
+tchTR069DeviceProductClass OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The class of product.
+       "
+    ::= { tchTR069DataModelParameters 5 }
+
+tchTR069DeviceSerialNumber OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The InternetGatewayDevice.DeviceInfo.SerialNumber parameter.
+       "
+    ::= { tchTR069DataModelParameters 6 }
+
+tchTR069DeviceHardwareVersion OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        The Device Hardware Version.
+       "
+    ::= { tchTR069DataModelParameters 7 }
+
+tchTR069DeviceSoftwareVersion OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        Same as SNMP docsDevSwCurrentVers object
+       "
+    ::= { tchTR069DataModelParameters 8 }
+
+tchTR069DeviceAddisionalSoftwareVersion OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        Comma-separated list (maximum length 64) of strings. Each entry is an 
+        additional version. Represents any additional software version information
+        the vendor might wish to supply.
+       "
+    ::= { tchTR069DataModelParameters 9 }
+
+tchTR069DeviceAddisionalHardwareVersion OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        Comma-separated list (maximum length 64) of strings. Each entry is an 
+        additional version. Represents any additional hardware version 
+        information the vendor might wish to supply.
+       "
+    ::= { tchTR069DataModelParameters 10 }
+
+tchTR069DeviceProvisioningCode OBJECT-TYPE
+    SYNTAX OCTET STRING (SIZE(0..64))
+    MAX-ACCESS read-only
+    STATUS current
+    DESCRIPTION
+       "This mib is only supported by TR181.
+        Identifier of the primary service provider and other provisioning information, 
+        which MAY be used by the ACS to determine service provider-specific customization
+        and provisioning parameters.
+       "
+    ::= { tchTR069DataModelParameters 11 }
+
+tchTR069ApplySettings OBJECT-TYPE
+    SYNTAX      TruthValue
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "This mib is only supported by TR181.
+         If set to true(1), TR69 all configure should be reconfig, and then TR69 start.
+         Always returns false(2) when read.
+        "
+    ::= { tchTR069 4 }
+END
