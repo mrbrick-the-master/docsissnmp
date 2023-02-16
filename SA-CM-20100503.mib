@@ -1,0 +1,1785 @@
+--**************************************************************************
+--                                                                          
+--    Copyright 2009 Scientific Atlanta, A Cisco Company                                   
+--    All Rights Reserved                                                   
+--    No portions of this material may be reproduced in any
+--    form without the written permission of:                                                
+--             Cisco Systems Inc.                                           
+--             5030 Sugarloaf Pkwy                                     
+--             Lawrenceville, Georgia 30044                                    
+--                                                                          
+--**************************************************************************
+
+SA-CM-MIB DEFINITIONS ::= BEGIN
+IMPORTS
+        MODULE-IDENTITY, 
+        OBJECT-TYPE,enterprises, 
+        Counter32, 
+        Integer32,
+        IpAddress
+                FROM SNMPv2-SMI
+        MODULE-COMPLIANCE, 
+        OBJECT-GROUP
+                FROM SNMPv2-CONF
+        TEXTUAL-CONVENTION,
+        MacAddress,DisplayString,
+        TruthValue, RowStatus
+                FROM SNMPv2-TC
+        SnmpAdminString
+                FROM SNMP-FRAMEWORK-MIB -- RFC2571        
+        ifIndex
+                FROM IF-MIB;
+                
+sa         OBJECT IDENTIFIER ::= { enterprises 1429 }  
+                        
+saCmMib MODULE-IDENTITY
+        LAST-UPDATED    "201001210000Z"
+        ORGANIZATION    "Cisco Systems, Inc."
+        CONTACT-INFO    "Craig Kerchner: kerchnc@cisco.com"
+        DESCRIPTION
+                "(Scientific Atlanta)Cisco Cable Modem MIB definition"
+
+        -- history 
+		REVISION "201004140000Z"
+		DESCRIPTION
+		 "Added usCmLock(2) to saCmDocsisLock"
+
+ 
+        REVISION "201001210000Z"
+        DESCRIPTION 
+        	"Added saPUFEntry" 
+        
+        REVISION "200912100000Z"
+        DESCRIPTION 
+        	"Added saLKFTable" 
+
+        REVISION "200910050000Z"
+        DESCRIPTION 
+        	"Revised the mib definition for Resilency and, 
+        	NarrowbandFallback" 
+        
+        REVISION "200910010000Z"
+        DESCRIPTION 
+        	"Added saCmStatusMessageOnBattery, 
+        	saMddIpModeOverride, saCmDocsisCapableVersion" 
+
+        REVISION "200908240000Z"
+        DESCRIPTION 
+        	"Modified saCmFtpControl,
+			vendorONLINELEDTreatment.
+			"   
+	    
+	    REVISION "200908130000Z"
+        DESCRIPTION "Added saPUFTable"
+			
+        REVISION "200908120000Z"
+        DESCRIPTION 
+        	"Added saCmFtpIpStackInterface
+        	saCmFtpServerAddressType
+        	saCmFtpServerAddress
+        	saCmFtpServerPort,
+			saCmFtpUserName
+			saCmFtpPassword
+			saCmFtpFilename
+			saCmFtpControl
+			saCmFtpStatus
+			saCmFtpPayloadBytesResult
+			saCmFtpTotalBytesResult
+			saCmFtpElapsedTimeResult
+			saCmFtpThroughputResult
+			vendorUSLEDTreatment 
+			vendorONLINELEDTreatment 	
+			Modified vendorDSLEDTreatment and vendorLINKLEDTreatment.
+			" 
+        
+        REVISION "200907290000Z"
+        DESCRIPTION "Added saCmWebAccessNoActivityTimeout"  
+         
+        REVISION     "200904100000Z"
+        DESCRIPTION
+            "Added vendorLINKLEDTreatment"
+
+        REVISION     "200902050000Z"
+        DESCRIPTION
+            "Added vendorDSLEDTreatment
+             Corrected typo in saCmNarrowbandFallbackInterval description. "
+
+        REVISION     "200901150000Z"
+        DESCRIPTION
+            "Added saCmSoftwareDownloadTFTPServer
+             Updated Copyright date. "
+
+        REVISION     "200811040000Z"
+        DESCRIPTION
+            "Changed the default values and range for saCmNarrowbandFallbackInterval 
+              and saCmResiliencyInterval. "
+         
+        REVISION     "200801170000Z"
+        DESCRIPTION
+            "Added half-duplex-1Gbps(6) and full-duplex-1Gbps(7)
+                   to cmEthernetOperation
+             Changed values to lowercase in cmUpstreamMode
+                   and cmDocsis1xQpskBurstPreamble"
+
+        REVISION     "200711160000Z"
+        DESCRIPTION
+            "Added saCmInternalDhcpServer (1859)
+             Changed DEFVAL for saCmArpRateLimit (1862)"
+
+        REVISION     "200711030000Z"
+        DESCRIPTION
+            "Added saCmNarrowbandFallbackInterval (10123)"
+
+        REVISION     "200710100000Z"
+        DESCRIPTION
+            "Added saCmResiliencyInterval (10101)"
+
+        REVISION     "200708140000Z"
+        DESCRIPTION
+            "Corrected SEQUENCE objects for tables."
+
+        REVISION     "200705010000Z"
+        DESCRIPTION
+            "Changed saCmWebAccessAdvancedType default to 1
+             Changed logic for HW sepcific SW download:
+                     no filename required in each row
+             Removed saCmSwUpgradeFromMgt(1) from saCmSwAdminStatus
+             Changed cmRGresetdefault
+                     remoteProvisionFilename
+                     remoteProvisionOperStatus
+                     remoteProvisionAdminStatus status to obsolte (move to RG)
+             Added saCmDsBonding (10086)"
+
+        REVISION     "200701110000Z"
+        DESCRIPTION
+            "Changed description of saCmWebAccessAdvancedPassword
+             Changed description of some objects in saCmIdentityDownload
+             Added saCmForceDualscan (10021)"
+
+        REVISION     "200611220000Z"
+        DESCRIPTION
+            "Changed cmAPWeb and cmRemoteWebAccess
+                     status to obsolete (892)"
+
+        REVISION     "200610120000Z"
+        DESCRIPTION
+            "Added saCmCpeMacAging (1003)
+             Added saCmBpiForward (1017)
+             Added saCmDocsisLock (1018)
+             Added default to cmAPFtpSwitch (985,5326)"
+
+        REVISION     "200609250000Z"
+        DESCRIPTION
+            "Added saCmIdentityDownload (950)"
+
+        REVISION     "200609080000Z"
+        DESCRIPTION
+            "Added saCmTodRenewal (909)
+             Added saCmAutoResetNoActivity (912)"
+
+        REVISION     "200609050000Z"
+        DESCRIPTION
+            "Changed saCmSwCvcReference and saCmSoftwareCvcTable
+                     status to obsolete (887)"
+
+        REVISION     "200608180000Z"
+        DESCRIPTION
+            "Added saCmWebAccess tree (892,5271)"
+
+        REVISION     "200607260000Z"
+        DESCRIPTION
+            "Added DEFVAL to cmConsoleMode (5239)"
+
+        REVISION     "200606200000Z"
+        DESCRIPTION
+            "Changed logic for HW sepcific SW download:
+               no server required in each row."
+
+        REVISION     "200601170000Z" -- 2006/01/17
+        DESCRIPTION
+            "Added saCmArpRateLimit"
+
+        REVISION     "200512210000Z" -- 2005/12/21
+        DESCRIPTION
+            "Added saCmSoftwareDownload tree"
+
+        REVISION "200105300000Z"
+        DESCRIPTION
+            "Initial Compilable Version."
+        ::= { sa 77 }   -- cableModem assign here
+        
+
+-- Generic information
+
+dpxCmMibObjects  OBJECT IDENTIFIER ::= { saCmMib 1 }
+        
+--        
+-- General Information about the CableModem
+--
+cmSysInfo         OBJECT IDENTIFIER ::=  { dpxCmMibObjects 1}
+cmVendorInfo      OBJECT IDENTIFIER ::=  { dpxCmMibObjects 2}
+cmAPInfo          OBJECT IDENTIFIER ::=  { dpxCmMibObjects 3}
+cmInterfaceInfo   OBJECT IDENTIFIER ::=  { dpxCmMibObjects 4}
+rgAPinfo          OBJECT IDENTIFIER ::=  { dpxCmMibObjects 5}
+
+rgRemoteProvision  OBJECT IDENTIFIER ::=  { rgAPinfo 1}
+
+cpuUtilization OBJECT-TYPE
+        SYNTAX 		Integer32
+        MAX-ACCESS 	read-only
+        STATUS 		current
+	DESCRIPTION 
+	           "CableModem CPU utilization"
+	::= { cmSysInfo 1 }
+
+memUtilization OBJECT-TYPE
+        SYNTAX 		Integer32
+        MAX-ACCESS 	read-only
+        STATUS 		current
+	DESCRIPTION 
+	           "CableModem Memory utilization"
+	::= { cmSysInfo 2 }
+
+memFragmentation OBJECT-TYPE
+        SYNTAX 		Integer32
+        MAX-ACCESS 	read-only
+        STATUS 		current
+	DESCRIPTION 
+	           "CableModem MemFragemntation"
+	::= { cmSysInfo 3 }
+	
+ethTxBufferNum OBJECT-TYPE
+        SYNTAX 		Integer32
+        MAX-ACCESS 	read-only
+        STATUS 		current
+	DESCRIPTION 
+	           "CableModem EthTxBufferNum"
+	::= { cmSysInfo 4 }
+	
+usbTxBufferNum OBJECT-TYPE
+        SYNTAX 		Integer32
+        MAX-ACCESS 	read-only
+        STATUS 		current
+	DESCRIPTION 
+	           "CableModem UsbTxBufferNum"
+	::= { cmSysInfo 5 }	
+
+macTxBufferNum OBJECT-TYPE
+        SYNTAX 		Integer32
+        MAX-ACCESS 	read-only
+        STATUS 		current
+	DESCRIPTION 
+	           "CableModem MacTxBufferNum"
+	::= { cmSysInfo 6 }	
+	
+macRxBufferNum OBJECT-TYPE
+        SYNTAX 		Integer32
+        MAX-ACCESS 	read-only
+        STATUS 		current
+	DESCRIPTION 
+	           "CableModem MacRxBufferNum"
+	::= { cmSysInfo 7 }					
+
+cmUpstreamMode OBJECT-TYPE
+        SYNTAX INTEGER {
+                docsis1(1),
+                atdma(2),
+                scdma(3)
+        }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION 
+            "Status of the upstream communication type the cable modem is currently using with the CMTS.
+            1) DOCSIS 1.0 or 1.1 style TDMA
+            2) DOCSIS 2.0 ATDMA
+            3) DOCSIS 2.0 SCDMA"
+        ::= { cmSysInfo 8 } 	    
+        
+vendorDefaultDSfreq  OBJECT-TYPE
+        SYNTAX Integer32 (93000000..855000000) 
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"
+        		 DOCSIS: 
+        		 initial downstream frequency,
+        		 range: 93000000 to 855000000 Hz
+        		 EuroDOCSIS:
+        		 initial downstream frequency,
+        		 range: 88000000 to 859000000 Hz
+        		 "
+        ::= { cmVendorInfo 6 }        
+        
+vendorDSLEDTreatment  OBJECT-TYPE
+        SYNTAX INTEGER {
+            signalNB(0),
+            signalWB(1),
+            signalWBNBG(2),
+            signalWBNBA(3)
+        }                 
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"
+        		 This MIB is only valid in DOCSIS 3.0 enabled modems with dual LEDs. 
+        		 This MIB determines the DS LED color, green or amber, to be used to indicate DS state.  
+                 
+                 signalNB:  DS LED = amber for narrowband; DS LED = green when DS w-online wideband.
+ 				 signalWB:  DS LED = amber for wideband; DS LED = green when DS online narrowband.
+ 				 signalWBNBG: Both WB and NB states are indicated using the Green LED.
+ 				 signalWBNBA: Both WB and NB states are indicated using the Amber LED.
+        		 "
+        DEFVAL { 0 }
+        ::= { cmVendorInfo 7 }        
+
+vendorLINKLEDTreatment OBJECT-TYPE 
+        SYNTAX INTEGER {
+            default(0),
+            showlinkspeed(1),
+            d3Amberledslowspeed(2),
+            d3Greenledslowspeed(3)
+        } 
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION 
+                        "
+                        This MIB will determine Link Speed using blink rate for DOCSIS 2.0 modems or
+                        using LED color for DOCSIS 3.0 Modems as seen with the LINK LED.
+
+                        default: LINK LED behavior follows standard behavior as defined per User Guide
+                        
+                        FOR DOCSIS 2.0
+                        1: showlinkspeed: When connected, LED blinks 1x/2sec for 10/100 operation
+                        and blinks 2x/1sec for Gigabit operation.  Traffic is still reflected as
+                        2x/1sec. 
+                        
+                        FOR DOCSIS 3.0
+                        On dual LED D3.0 modems the operator can choose to have 10/100 operation indicated by either 
+                        a green LED or an amber LED. Modems that support 1000 Mb speeds shall indicate using the
+                        alternate LED. 
+                        
+                        2: d3Greenledslowspeed indicates 10/100 operation using the Green LED.
+                 		3: d3Amberledslowspeed indicates 10/100 operation using the Amber LED.
+                        "
+        DEFVAL { 0 }
+        ::= { cmVendorInfo 8 }
+
+vendorUSLEDTreatment  OBJECT-TYPE
+        SYNTAX INTEGER {
+            signalWBNBG(0),
+            signalNB(1),
+            signalWB(2),
+            signalWBNBA(3)
+        } 
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"
+        		 This MIB is only valid in DOCSIS 3.0 enabled modems with dual LEDs. 
+        		 This MIB determines the US LED color, green or amber to be used to indicate US state.  
+                 
+                 signalWBNBG: Both WB and NB states are indicated using the Green LED.
+                 signalNB:  US LED = amber for narrowband; US LED = green when US w-online wideband.
+ 				 signalWB:  US LED = amber for wideband; US LED = green when US online narrowband.
+ 				 signalWBNBA: Both WB and NB states are indicated using the Amber LED.
+        		 "
+        DEFVAL { 0 }
+        ::= { cmVendorInfo 9 }
+        
+vendorONLINELEDTreatment  OBJECT-TYPE
+        SYNTAX INTEGER {
+            signalWBNBG(0),
+            signalNB(1),
+            signalWB(2),
+            signalWBNBA(3)
+        } 
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"
+        		 This MIB is only valid in DOCSIS 3.0 enabled modems with dual LEDs. 
+        		 This MIB provides a way to select the ONLINE LED color, green or amber to distinguish between
+        		 wideband online or online(NB).  
+        		         		 
+        		 signalWBNBG: Both WB and NB states are indicated using the Green LED.
+                 signalNB:  ONLINE LED = amber for narrowband; ONLINE LED = green when DS w-online wideband.
+ 				 signalWB:  ONLINE LED = amber for wideband; ONLINE LED = green when DS online narrowband.
+ 				 signalWBNBA: Both WB and NB states are indicated using the Amber LED. 
+ 				 
+        		 NOTE: This LED will only provide indication of a Downstream Bonded environment and does not 
+        		 indicate the presence of Upstream bonding.
+                "
+        DEFVAL { 0 }
+        ::= { cmVendorInfo 10 }        
+        
+cmAPIgmp  OBJECT-TYPE
+        SYNTAX INTEGER {
+            disableIGMP(0),
+            enableIGMP(1)
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"
+        		 0: disable IGMP proxy,
+                 1: enable IGMP proxy"
+        ::= { cmAPInfo 1 }       
+
+cmAPWeb  OBJECT-TYPE
+        SYNTAX INTEGER {
+            no-cpe-access(0),
+            restricted-access(1),
+            open-access(2)            
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		obsolete
+        DESCRIPTION	
+        		"Web page access level.
+        		 0: no CPE access to any page
+        		 1: access to syetm page only
+        		 2: access to all pages"
+        ::= { cmAPInfo 2 }          
+
+
+
+cmAPAgingOut  OBJECT-TYPE
+        SYNTAX INTEGER {
+            disableAgingOut(0),
+            enableAgingOut(1)
+
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"
+        		 0: disable ARP aging out
+        		 1: enable ARP aging out"
+        ::= { cmAPInfo 4 }             
+
+cmAPBpi2CertStatus  OBJECT-TYPE
+        SYNTAX INTEGER {
+            installed(0),
+            notInstalled(1),
+            invalidCertificate(2),
+            other(3)
+        }
+        MAX-ACCESS 	read-only
+        STATUS 		current
+        DESCRIPTION	
+        		"The value of this object is the option way of 
+        		the CM certificated."
+        ::= { cmAPInfo 5 }          
+
+cmAPWebSwitch  OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)     
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"This object is ued to turn on/off web pages. 
+        	   Once we change the value of this object, 
+        		CM will reboot and the new value will take effect."
+        ::= { cmAPInfo 6 }      
+
+cmAPWebAccessLvlPassword  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..40))         
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"This object is used to for changing the password 
+        		that controls the level of access to the Web Wizard." 
+        ::= { cmAPInfo 7 }          
+
+cmAPFtpSwitch OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+        }
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+            "This object is used to switch ON/OFF ftp improvement function."
+        DEFVAL { 1 }
+        ::= { cmAPInfo 8 }
+
+cmRGresetdefault OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		obsolete
+        DESCRIPTION	
+        		"If enable, RG setting can be reset by ResetToDefault button"
+        ::= { cmAPInfo 9 } 
+
+cmRemoteWebAccess OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		obsolete
+        DESCRIPTION	
+        		"If enable, MSO can read/write web page from WAN side"
+        ::= { cmAPInfo 10 } 
+
+cmAPDsPlan OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..1))
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+            "This object is used to change DS frequency plan.
+            
+            a - North America (NTSC)
+            b - International DOCSIS (PAL-I, PAL-G, NTSC and 1 MHz step routine)
+            c - International Euro-DOCSIS/DOCSIS (PAL-G, PAL-I, NTSC and 1 MHz step routine)
+            d - Japanese (NTSC Japan)
+            "
+        ::= { cmAPInfo 11 }
+        
+
+cmAPConsoleEnablePassword  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..40))         
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"This object is used to for changing the password 
+        		that enables or disables the console port." 
+        ::= { cmAPInfo 12 }      
+
+
+cmAPMulticastPromiscuousMode OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+        }
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+                "Support for transparent multicast pass-thru using Promiscuous Multicast Mode.
+                The setting will be stored in non-volatile memory and will be retained 
+                through a power cycle. It can be forcibly cleared with a fatcory reset."
+        ::= { cmAPInfo 13 }
+                      
+
+cmDocsis1xQpskBurstPreamble OBJECT-TYPE
+        SYNTAX INTEGER {
+            qpsk0(0),
+            qpsk1(1)
+        }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION      
+        "Controls the default setting of the preamble type when running in DOCSIS 1.x mode.  
+         In DOCSIS 2.0 mode the preamble types is specified by the CMTS via the Upstream Channel
+         Descriptor.
+        0: Use QPSK0 Preamble type as the default
+        1: Use QPSK1 Preamble type as the default"
+        DEFVAL { 0 }
+        ::= { cmAPInfo 14 }
+        
+cmAPInternalInterface OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+        }
+        MAX-ACCESS read-write
+        STATUS current
+        DESCRIPTION      
+        "Controls the state of local interface.
+        0: Shut down local interface,
+        1: Leave local interface as is."
+        DEFVAL { 1 }
+        ::= { cmAPInfo 15 }
+
+cmAPWebAccessLvlUsername  OBJECT-TYPE
+        SYNTAX DisplayString (SIZE (0..40))         
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"This object is used to for changing the username 
+        		that controls the level of access to the Web Wizard." 
+        ::= { cmAPInfo 16 }
+        
+cmAPResetNow  OBJECT-TYPE
+        SYNTAX 		TruthValue        
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"Setting this object to true(1) causes the device to 
+			 reset as momentary activation of reset switch,
+			 which reset only the DOCSIS parameters to factory default values.
+             		 Reading this object always returns false(2)." 
+        ::= { cmAPInfo 17 }        
+
+cmAPFactoryReset  OBJECT-TYPE
+        SYNTAX 		TruthValue        
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"Can be set with a sequence of values to activate a remote factory reset. 
+			 This is the same as a sustained ( 3 seconds or more ) reset switch.
+             		 Reading this object always returns false(2)." 
+        ::= { cmAPInfo 18 }        
+
+saCmArpRateLimit OBJECT-TYPE
+        SYNTAX INTEGER  (0..100)
+        UNITS           "packets-per-second"
+        MAX-ACCESS      read-write
+        STATUS          current
+        DESCRIPTION     
+            "Setting ARP rate-limit defines the number of ARP packets
+             that can be processed per second. Limitation of this number
+             prevents denial-of-service attacks. A value of 20 pps is a
+             good reference. Setting the value to 0 allows unlimited
+             incoming ARP messages"
+        DEFVAL    { 0 }
+        ::= { cmAPInfo 19 }
+        
+saCmInternalDhcpServer OBJECT-TYPE
+       SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+            }
+       MAX-ACCESS  read-write
+       STATUS   current
+       DESCRIPTION 
+          "Controls the DHCP server that is used when CM is offline.
+           0: disable internal DHCP server
+           1: enable internal DHCP server"
+        DEFVAL { 1 }
+        ::= { cmAPInfo 20 }             
+
+remoteProvisionServer OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-write
+        STATUS      obsolete
+        DESCRIPTION
+            "The address of the TFTP server used for RG config download or upload.
+             If the TFTP server is unknown, return 0.0.0.0."
+        ::= { rgRemoteProvision 1 }
+
+
+remoteProvisionFilename OBJECT-TYPE
+        SYNTAX      SnmpAdminString (SIZE (0..64))
+        MAX-ACCESS  read-write
+        STATUS      obsolete
+        DESCRIPTION
+            "The file name of the config file to be download or upload. 
+             If unknown, the string '(unknown)' is returned."
+        ::= { rgRemoteProvision 2 }
+
+
+remoteProvisionOperStatus OBJECT-TYPE
+      SYNTAX INTEGER {
+            inProgress(1),
+            complete(2),
+            failed(3),
+            other(4)
+        }
+        MAX-ACCESS  read-only
+        STATUS      obsolete
+        DESCRIPTION
+            "InProgress(1) indicates that a TFTP download or upload is underway,
+             Complete(2) indicates that the last download or upload is successful,
+             failed(3) indicates that the last attempted download or upload is falied."
+        ::= { rgRemoteProvision 3 }
+
+
+remoteProvisionAdminStatus OBJECT-TYPE 
+        SYNTAX INTEGER {
+            download(1),
+            upload(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      obsolete
+        DESCRIPTION
+            "If set to download(1), the device will initiate a
+             TFTP RG config file download using remoteProvisionFilename.
+             If set to upload(2), the device will initiate a TFTP RG config file 
+             upload to remoteProvisionServer. The filename will be the same as
+             remoteProvisionFilename. 
+
+             At initial startup, this object has the default value of
+             download(1)."
+        ::= { rgRemoteProvision 4 }
+        
+
+virusProtectionSoftwareURL OBJECT-TYPE
+        SYNTAX      SnmpAdminString (SIZE (0..255))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This string is the The Virus Protection Software URL.
+             It will be used as download link when click Virus Protection/software download in Setup page."
+        ::= { rgAPinfo 2}
+         
+--
+cmEthernetOperation OBJECT-TYPE
+        SYNTAX INTEGER {
+            autoNegotiation(0),
+            half-duplex-10Mbps(1),
+            full-duplex-10Mbps(2),
+            half-duplex-100Mbps(3),
+            full-duplex-100Mbps(4),
+            ethernetNotConnected(5),
+            half-duplex-1Gbps(6),
+            full-duplex-1Gbps(7)
+            }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+            "Sets Ethernet mode.
+             0: autoNegotiation(0),
+             1: half-duplex-10Mbps(1),
+             2: full-duplex-10Mbps(2),
+             3: half-duplex-100Mbps(3),
+             4: full-duplex-100Mbps(4),
+             5: ethernetNotConnected(5),
+             6: half-duplex-1Gbps(6),
+             7: full-duplex-1Gbps(7)"
+        ::= { cmInterfaceInfo 1 }             
+
+cmAccessProtectionRight OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"Default is Disable. 
+			     If you want to use AccessProtection,you must select Enable ,
+			     or AccessProtection can't be selected."
+        ::= { cmInterfaceInfo 2 }   
+
+cmAccessProtection OBJECT-TYPE
+        SYNTAX INTEGER {
+            inactive(1),
+            active(2),
+            automatic(3)
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"Default is Disable.
+        		
+			     inactive(1): It detect traffic from CPE. CM is on normal situtation. 
+			     active(2) : CM is on sleep situtation.
+			     automatic(3): CM will detect automaticlly. You can set time on AccessProtectionDelay.
+			                   If CM detect traffic from CPE,if will show disable again. "
+        ::= { cmInterfaceInfo 3 }   
+            
+cmAccessProtectionDelay OBJECT-TYPE
+        SYNTAX Integer32 (1..255)
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"Default is 5 mins. The range is 1 to 255min.
+        		 But the function is effective when AccessProtection set automatic."
+        ::= { cmInterfaceInfo 4 }   
+            
+cmMsgLED OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            enable(1)
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		""
+        ::= { cmInterfaceInfo 6 } 
+
+cmConsoleMode OBJECT-TYPE
+        SYNTAX INTEGER {
+            disable(0),
+            readOnly(1),
+            readWrite(2)
+        }
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"To Control console port is disabled, read only, or read write"
+        DEFVAL { 0 }
+        ::= { cmInterfaceInfo 7 } 
+
+cmTimerT4 OBJECT-TYPE
+        SYNTAX INTEGER (30..60)
+        UNITS         "seconds"
+        MAX-ACCESS 	read-write
+        STATUS 	current
+        DESCRIPTION	
+        		"T4 timeout definition."
+        DEFVAL { 30 }
+        ::= { cmInterfaceInfo 8 }   
+
+saCmTodRenewal OBJECT-TYPE
+    SYNTAX INTEGER
+    UNITS "hours"
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION	
+        "Defines how often to update time with ToD protocol.
+         0: never
+         1: together with DHCP renewal
+         2-11: reserved
+         12+: number of hours"
+    DEFVAL { 0 }
+    ::= { cmInterfaceInfo 9 }
+
+saCmAutoResetNoActivity OBJECT-TYPE
+    SYNTAX INTEGER (0..43200)
+    UNITS "minutes"
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION	
+        "Setting this object to any value N > 0 will cause the CM to reboot autonomously
+         3/4th of N minutes after the modem has detected that there is no connectivity to the CM gateway after three unsuccessful pings. 
+         NOTE: The default value of 0 means the feature is disabled."
+    DEFVAL { 0 }
+    ::= { cmInterfaceInfo 10 } 
+
+saCmCpeMacAging OBJECT-TYPE
+    SYNTAX INTEGER
+    UNITS "seconds"
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION	
+        "Setting this object to any value N > 0 will cause the CM to remove a MAC address
+         from its CPE table N seconds after the modem has detected no traffic from it.
+         This feature applies ONLY to devices connected to the CM, not the embedded ones
+         (as MTA or CableHome).
+         NOTE: The default value of 0 means the feature is disabled."
+    DEFVAL { 0 }
+    ::= { cmInterfaceInfo 11 }
+ 
+saCmBpiForward OBJECT-TYPE
+    SYNTAX INTEGER {
+        macTable(1),
+        allPackets(2)
+        }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION	
+        "This object controls whether to forward traffic that is not
+         destined for any CPE (not in CPE table) when running BPI.
+         1: follow DOCSIS rules. Do not forward traffic when destination
+            MAC not in the CPE table.
+         2: when BPI is enabled, forward all traffic (if security
+            association matches, otherwise cannot decrypt packets).
+         When BPI is disabled, this object does not have effect."
+    DEFVAL { 1 }
+    ::= { cmInterfaceInfo 12 }
+
+saCmDocsisLock OBJECT-TYPE
+    SYNTAX INTEGER {
+        euCmSkip(0),
+        euCmLock(1),
+	usCmLock(2)
+        }
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION	
+        "Setting this object allows a Euro-DOCSIS modem to operate
+         on a DOCSIS channel. Normally, Euro-DOCSIS will only
+         operate on a Euro-DOCSIS channel.
+         0: Euro-DOCSIS modem will keep scanning until it finds a
+            Euro-DOCSIS or DOCSIS channel. It will lock on that
+            channel, get configuration file and if it is a DOCSIS
+            channel, it will un-lock and continue scanning further.
+         1: Euro-DOCSIS modem will stay locked if it locates a
+            DOCSIS or Euro-DOCSIS channel.
+	 2: Euro-DOCSIS modem will stay locked if it locates a 
+	     DOCSIS channel.
+         NOTE: This object is only applied on Euro-DOCSIS models.
+               DOCSIS models ignore this object.
+         Equivalent to VSIF 109."
+    DEFVAL { 0 }
+    ::= { cmInterfaceInfo 13 }
+
+saCmForceDualscan OBJECT-TYPE   
+    SYNTAX INTEGER {   
+        useFactorySetting(0),
+        enable(1)
+        }   
+    MAX-ACCESS read-write  
+    STATUS current   
+    DESCRIPTION   
+        "The MIB will choose whether to force dualscan
+         operation for the device.  Dualscan refers to the
+         CM ability to automatically scan for both 6MHz and
+         8MHz carriers.
+         0 : Will not force dualscan.  In this case, the 
+             factory configuration for dualscan will take 
+             effect.
+             *note: Factory Dualscan configuration is 
+              typically only enabled for EPC products.
+         1 : Will force dualscan to be enabled.  In this 
+             case, dualscan will be enabled regardless of 
+             the factory setting.
+         This MIB value will be stored to NonVolatile
+         memory(NVM) and will persist across reboots.  If 
+         the MIB is set via the config file, the CM will 
+         store the new setting and begin using it on next
+         reboot.  Removing the setting from the config 
+         file will not change the value stored in NVM the 
+         CM will continue to operate using the previously 
+         stored value.
+         However, if an SNMP SET is used to modify the 
+         value, then the CM will not use the new setting 
+         until the next reboot occurs or is commanded.
+         A factory reset of the CM will set the stored
+         value back to 0."  
+    ::= { cmInterfaceInfo 14 } 
+
+saCmDsBonding OBJECT-TYPE   
+    SYNTAX INTEGER {   
+        disable(0),
+        enable(1)
+        }   
+    MAX-ACCESS read-write  
+    STATUS current   
+    DESCRIPTION   
+        "The MIB will choose whether to enable downstream 
+         channel bonding for bonding-capable modems.  
+         Non-bonding modems will ignore this MIB object.
+         0 : Disable downstream channel bonding. 
+         1 : Enable downstream channel bonding. 
+         This MIB will take effect at the next reboot.
+         This MIB value will be stored to NonVolatile
+         memory(NVM) and will persist across reboots.  If 
+         the MIB is set via the config file, the CM will 
+         store the new setting and reboot if a change is 
+         necessary.  Removing the setting from the config 
+         file will not change the value stored in NVM:  the 
+         CM will continue to operate using the previously 
+         stored value.
+         If an SNMP SET is used to modify the value, then 
+         the CM will not use the new setting until the next 
+         reboot occurs or is commanded.
+         A factory reset of the CM will set the stored
+         value back to 1."  
+    DEFVAL { 1 }         
+    ::= { cmInterfaceInfo 15 }
+                
+saCmResiliencyInterval OBJECT-TYPE   
+    SYNTAX INTEGER (0..86400)
+    UNITS "seconds"
+    MAX-ACCESS   read-write  
+    STATUS       current   
+    DESCRIPTION   
+        "Setting to a non-zero number activates the Bonded Channel Resiliency feature
+         and the set integer value becomes the period, in seconds, that the secondary 
+         downstream channels are evaluated.  If the modem falls back to single downstream
+         channel mode and the previously rejected (or accepted) secondary downstream
+         channels are deemed to be operational the modem will reset the cable interface
+         in order to come up in bonded channel mode.  The secondary channels will 
+         indefinitely be evaluated every (set period) seconds and downstream bonding
+         restored if possible.
+         Setting the value to zero will disable this feature.  Values under 60 will be set as 60. 
+         
+         The default setting for all 8x4 DOCSIS 3.0 Product types is (0)."
+    DEFVAL  { 600 }
+    ::= { cmInterfaceInfo 16 }   
+
+saCmNarrowbandFallbackInterval OBJECT-TYPE   
+    SYNTAX INTEGER (0..86400)
+    UNITS "seconds"   
+    MAX-ACCESS   read-write  
+    STATUS       current   
+    DESCRIPTION   
+        "Setting this MIB to a non-zero number will allow channel bonded modems to
+         revert to Narrowband mode when wideband channels are failing.  The setting is
+         an approximate number of seconds and can vary +/- 30 seconds depending on
+         bonded channel conditions.
+         Narrowband fallback will require a re-registration with the CMTS.
+         If set to 0, then the modem will NOT attempt to re-connect the wideband channels
+         until a DHCP lease timeout occurs.  During this time, no data service will be available
+         to the subscriber.  Values under 10 will be set as 10.
+         
+         The defualt setting for all 8x4 DOCSIS 3.0 Product types is (0)."
+    DEFVAL { 30 }
+    ::= { cmInterfaceInfo 17 }   
+
+saCmFtpIpStackInterface OBJECT-TYPE
+        SYNTAX INTEGER (1..8)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Use this MIB to specify the interface on which the FTP file will be received on or sent to. 
+            The interface must have a valid IP address in order for this tool to function.  The default interface is the 
+            Cable Modem IP address."
+        DEFVAL { 1 }
+        ::= { cmInterfaceInfo 18 }   
+        
+saCmFtpServerAddressType OBJECT-TYPE
+        SYNTAX INTEGER {   
+        ipv4(0),
+        ipv6(1)
+        } 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This MIB defines the type of internet address to be used for the FTP Server.
+            0 : IPv4 FTP Server Address
+            1 : IPv6 FTP Server Address (reserved for future support)  
+            NOTE: The default value of 0 indicates support for IPv4 IP address."
+        DEFVAL { 0 }
+        ::= { cmInterfaceInfo 19 }   
+        
+saCmFtpServerAddress OBJECT-TYPE
+        SYNTAX      IpAddress
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This MIB defines a network FTP Server address of a  valid network FTP server.  The FTP
+            Server address must be a routable network address in order for the FTP tool to function
+            correctly.  If the FTP server is unknown, return 0.0.0.0."
+        ::= { cmInterfaceInfo 20 } 
+        
+saCmFtpServerPort OBJECT-TYPE
+        SYNTAX INTEGER (0..65536)
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This MIB defines the TCP port to be used on the FTP Server for file transfer."
+        DEFVAL { 21 }
+        ::= { cmInterfaceInfo 21 }          
+        
+saCmFtpUserName OBJECT-TYPE
+        SYNTAX SnmpAdminString (SIZE (0..40))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Specify the username to be used for logging into the FTP Server."
+        DEFVAL { "admin" }
+        ::= { cmInterfaceInfo 22 }   
+        
+saCmFtpPassword OBJECT-TYPE
+        SYNTAX SnmpAdminString (SIZE (0..40))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Specify the password to be used for logging into the FTP Server."
+        ::= { cmInterfaceInfo 23 }  
+        
+saCmFtpFilename OBJECT-TYPE
+        SYNTAX SnmpAdminString (SIZE (0..40))
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Specify the filename and path of the file to be downloaded or uploaded to the FTP Server."
+        DEFVAL { "" }
+        ::= { cmInterfaceInfo 24 }    
+        
+saCmFtpControl OBJECT-TYPE
+        SYNTAX INTEGER {   
+        cancel(0),
+        get(1),
+        put(2)
+        } 
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "This MIB initiates the file transfer and allows the user to choose either a get or a put."
+        DEFVAL { 0 }
+        ::= { cmInterfaceInfo 25 }             
+
+saCmFtpStatus OBJECT-TYPE
+        SYNTAX INTEGER {   
+        idle(0),
+        fileStatusOk(150),
+        serviceReady(200),
+        sessionReady(221),
+        transferComplete(226),
+        passwordOk(230),
+        userNameOk(331),
+        serviceNotAvail(421),
+        invalidLogin(530),
+        fileNotFound(550),
+        socketConnectFailure(600)
+        } 
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "This MIB provides a file transfer status report indicating the status of the latest transfer. 
+            In the event a file transfer was not activated this field shall return a value of idle(0)."
+        ::= { cmInterfaceInfo 26 }
+        
+saCmFtpPayloadBytes OBJECT-TYPE
+        SYNTAX Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Provides the number of bytes transfered during the test in the data payload.  The 
+            result is representative of the most recent or current transfer.  This number should 
+            equal the size the of the file transferred once the transfer completes."
+        ::= { cmInterfaceInfo 27 } 
+        
+saCmFtpTotalBytes OBJECT-TYPE
+        SYNTAX Counter32       
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Provides the total number of bytes transfered during the test including all file data and 
+            payload.  The result is representative of the most recent or current transfer.  The final
+            value should equal the size the of the file transferred once the transfer completes."
+        ::= { cmInterfaceInfo 28 }  
+        
+saCmFtpElapsedTime OBJECT-TYPE
+        SYNTAX Counter32
+        UNITS "seconds"       
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Provides the total number of bytes transfered during the test including all file data and 
+            payload.  The result is representative of the most recent or current transfer.  The final
+            value should equal the size the of the file transferred once the transfer completes."
+        ::= { cmInterfaceInfo 29 } 
+               
+saCmFtpThroughput OBJECT-TYPE
+        SYNTAX Unsigned32
+        UNITS "bits per second"
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+            "Provides the calculated throughput for the file transfer which is either in progress or most 
+            recently completed. This value = saCmFtpTotalBytes / saCmFtpElapsedTime."
+        ::= { cmInterfaceInfo 30 }   
+        
+
+saCmStatusMessageOnBattery OBJECT-TYPE
+        SYNTAX INTEGER {
+                       batteryMessages (1),
+                       batteryAndQAMMessages(2)
+                       }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION 
+            "This MIB selects the type of CM-STATUS messages to be sent in Docsis3.0 mode 
+            while operating on battery and thereafter restoration of AC power. 
+            atteryMessages would enable sending CM-STATUS messages 9 and 10 ONLY which is Spec compliant. 
+            BatteryAndQAMMessages would enable sending CM-STATUS messages 9 and 10 for battery operation, 
+            1-4 for NonPriMddFailure/Recovery, 2-5 QAM/FEC lock failure/recovery for Non Primary DS only"
+        DEFVAL { 2 }
+     ::= { cmInterfaceInfo 31 }        
+        
+        
+saMddIpModeOverride  OBJECT-TYPE
+        SYNTAX INTEGER {
+            honorMDD(0),
+            ipv4(1),
+            ipv6(2),
+            apm(3),
+            dpm(4)
+        } 
+        MAX-ACCESS 	read-write
+        STATUS 		current
+        DESCRIPTION	
+        		"
+        		 This MIB is only valid on IPv6 capable modems. 
+        		 This MIB provides a way to override the MDD TLV for IP mode initialization.
+        		 If set in the config file and IP mode is different than currently initialized
+        		 the modem must DHCP release and reinitialize to proper IP mode.
+        		 If set via SNMP in operational state the modem must not reinitialize.   
+        		         		 
+        		 honorMDD:  Honor the IP mode in the MDD message.
+                                 ipv4    :  Override IP mode to IPv4 if necessary.
+ 				 ipv6    :  Override IP mode to IPv6 if necessary.
+ 				 apm     :  Override IP mode to APM if necessary. 
+ 				 dpm     :  Override IP mode to DPM if necessary.
+ 				 
+        		 NOTE: The new setting will persist during reboots.
+                "
+        DEFVAL { 0 }
+        ::= { cmInterfaceInfo 32 }   
+        
+saCmDocsisCapableVersion OBJECT-TYPE
+		SYNTAX SnmpAdminString
+		MAX-ACCESS read-only
+		STATUS current 
+		DESCRIPTION 
+        "Displays the string value for CM DHCP DISCOVER option 60 text. 
+         This mib is only readable through SNMP.This MIB object can queried to identify the device’s docsis version that it supports." 
+
+    ::= {cmInterfaceInfo 33  }
+                     
+       
+-- =====================================
+-- HW SPECIFIC SOFTWARE DOWNLOAD OBJECTS
+-- =====================================
+--
+-- This table defines an alternative method of downloading
+-- new software to cable modems.
+-- When a SA modem reads the config file and finds this table present,
+-- it will do the following, for each row in the table:
+-- 1. Compare saCmSwModel name to its own name.
+--    If not the same, go to the next row in the table.
+--    If not present or the same, go to 2.
+-- 2. Compare saCmSwHwVer name to its own hardware version.
+--    If not the same, go to the next row in the table.
+--    If not present or the same, go to 3.
+-- 3. Compare saCmSwBootLoader to its own boot loader.
+--    If not the same, go to the next row in the table.
+--    If not present or the same, go to 4.
+-- 4. Compare saCmSwProto to its own signaling protocol.
+--    If not present or the same or any(0), go to 5.
+--    If not the same, go to the next row in the table.
+-- 5. If saCmSwFilename is present, copy the value to docsDevSwFilename.
+--    If saCmSwAdminStatus is present, copy the value to docsDevSwAdminStatus.
+--    If saCmSwServer is present, copy the value to docsDevSwServer.
+-- 6. If saCmSwMethod = unsecure(2), assume VSIF 38 = 1. If secure (1),
+--    use CVC that comes with software.
+-- 7. Exit the table.
+-- If no rows are left, use config file TLVs for upgrading software.
+--
+-- Hint: The most specific rows (the ones that use saCmSwModel,
+--       saCmSwHwVer and saCmSwProto) should be placed in the beginning
+--       of the table.
+
+saCmSoftwareDownload OBJECT IDENTIFIER ::= { dpxCmMibObjects 6 }
+
+saCmSoftwareTable   OBJECT-TYPE
+    SYNTAX        SEQUENCE OF SaCmSoftwareEntry
+    MAX-ACCESS    not-accessible
+    STATUS        current
+    DESCRIPTION
+        "Table for hardware specific software download."
+   ::=  { saCmSoftwareDownload 1 }
+
+saCmSoftwareEntry  OBJECT-TYPE
+    SYNTAX        SaCmSoftwareEntry
+    MAX-ACCESS    not-accessible
+    STATUS        current
+    DESCRIPTION
+        "Entries for hardware specific software download."
+    INDEX { saCmSwIndex }
+    ::= { saCmSoftwareTable 1 }
+
+SaCmSoftwareEntry ::= SEQUENCE
+    {
+    saCmSwIndex        INTEGER,
+    saCmSwModel        SnmpAdminString,
+    saCmSwHwVer        SnmpAdminString,
+    saCmSwBootLoader   SnmpAdminString,
+    saCmSwProtocol     INTEGER,
+    saCmSwFilename     SnmpAdminString,
+    saCmSwServer       IpAddress,
+    saCmSwAdminStatus  INTEGER,
+    saCmSwMethod       INTEGER,
+    saCmSwCvcReference INTEGER
+    }   
+
+saCmSwIndex OBJECT-TYPE
+    SYNTAX      INTEGER (1..30)
+    MAX-ACCESS  not-accessible
+    STATUS      current
+    DESCRIPTION
+        "Index used to order the application of access entries."
+    ::= { saCmSoftwareEntry 1 }
+
+saCmSwModel OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Model name of the cable modem product.
+         If not set, applies to all models.
+         example: DPC2100"
+    ::= { saCmSoftwareEntry 2 }
+
+saCmSwHwVer OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Hardware version of the cable modem product.
+         If not set, applies to all versions."
+    DEFVAL { "any" }
+    ::= { saCmSoftwareEntry 3 }
+
+saCmSwBootLoader OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Boot loader version of the cable modem product.
+         If not set, applies to all versions."
+    DEFVAL { "any" }
+    ::= { saCmSoftwareEntry 4 }
+
+saCmSwProtocol OBJECT-TYPE
+    SYNTAX INTEGER {
+        any(0),
+        ncs(1),
+        sip(2)
+    }
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Protocol used in cable modem product."
+    DEFVAL { 0 }
+    ::= { saCmSoftwareEntry 5 }
+
+saCmSwFilename OBJECT-TYPE
+    SYNTAX SnmpAdminString (SIZE (0..64))
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Filename of the software image."
+    ::= { saCmSoftwareEntry 6 }
+
+saCmSwServer OBJECT-TYPE
+    SYNTAX IpAddress
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "TFTP server IP address where software image is located."
+    ::= { saCmSoftwareEntry 7 }
+
+saCmSwAdminStatus OBJECT-TYPE
+    SYNTAX INTEGER {
+        saCmSwAllowProvisioningUpgrade(2),
+        saCmSwIgnoreProvisioningUpgrade(3)
+    }
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "See docsDevSwAdminStatus for details."
+    ::= { saCmSoftwareEntry 8 }
+
+saCmSwMethod OBJECT-TYPE
+    SYNTAX INTEGER {
+        secure(1),
+        unsecure(2)
+    }
+    MAX-ACCESS not-accessible
+    STATUS current
+    DESCRIPTION
+        "Method of software download."
+    DEFVAL { 1 }
+    ::= { saCmSoftwareEntry 9 }
+
+saCmSwCvcReference OBJECT-TYPE
+    SYNTAX INTEGER 
+    MAX-ACCESS not-accessible
+    STATUS obsolete
+    DESCRIPTION
+        "reference to CVC table row.
+         If not specified or 0, TLV-32 CVC will be used."
+    DEFVAL { 0 }
+    ::= { saCmSoftwareEntry 10 }
+
+
+
+saCmSoftwareCvcTable   OBJECT-TYPE
+    SYNTAX        SEQUENCE OF SaCmSoftwareCvcEntry
+    MAX-ACCESS    not-accessible
+    STATUS        obsolete
+    DESCRIPTION
+        "CVC table for hardware specific software download."
+   ::=  { saCmSoftwareDownload 2 }
+
+saCmSoftwareDownloadTFTPServer OBJECT-TYPE
+        SYNTAX INTEGER {
+                sameAsCM(1),
+                dhcpOption54(2)
+        }
+        MAX-ACCESS read-only
+        STATUS current
+        DESCRIPTION 
+            "When CM configuration file initiated software upgrade is needed, 
+             the TFTP request will be sent to SwUpgradeServer IP address.
+             When the value of SwUpgradeServer is not specified in the CM
+             configuration file then the TFTP request will be sent to the same
+             TFTP server used for CM configuration file download (1) or to the
+             IP address specified in DHCP Option 54 (2)."
+        DEFVAL { 1 }
+        ::= { saCmSoftwareDownload 3 }         
+
+saCmSoftwareCvcEntry  OBJECT-TYPE
+    SYNTAX        SaCmSoftwareCvcEntry
+    MAX-ACCESS    not-accessible
+    STATUS        obsolete
+    DESCRIPTION
+        "Entries for hardware specific software download CVC."
+    INDEX { saCmSwCvcIndex }
+    ::= { saCmSoftwareCvcTable 1 }
+
+SaCmSoftwareCvcEntry ::= SEQUENCE
+    {
+    saCmSwCvcIndex   INTEGER,
+    saCmSwMfgCvc     SnmpAdminString
+    }   
+
+
+saCmSwCvcIndex OBJECT-TYPE
+    SYNTAX      INTEGER (1..5)
+    MAX-ACCESS  not-accessible
+    STATUS      obsolete
+    DESCRIPTION
+        "Index used to order the application of access entries."
+    ::= { saCmSoftwareCvcEntry 1 }
+
+saCmSwMfgCvc OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS not-accessible
+    STATUS obsolete
+    DESCRIPTION
+        "The length of the CVC is 200 hex characters (100 Bytes)
+         except for the last block.
+         Multiple objects can be specified in a row as CVC is usually
+         longer than 100 bytes."
+    ::= { saCmSoftwareCvcEntry 2 }
+
+-- ============================================
+-- END OF HW SPECIFIC SOFTWARE DOWNLOAD OBJECTS
+-- ============================================
+
+-- ===============
+-- WEB ACCESS TREE
+-- ===============
+
+saCmWebAccess OBJECT IDENTIFIER ::= { dpxCmMibObjects 7 }
+
+saCmWebAccessTable   OBJECT-TYPE
+    SYNTAX        SEQUENCE OF SaCmWebAccessEntry
+    MAX-ACCESS    not-accessible
+    STATUS        current
+    DESCRIPTION
+        "Table for web access levels."
+   ::=  { saCmWebAccess 1 }
+
+saCmWebAccessEntry  OBJECT-TYPE
+    SYNTAX        SaCmWebAccessEntry
+    MAX-ACCESS    not-accessible
+    STATUS        current
+    DESCRIPTION
+        "Entries for web access levels."
+    INDEX { ifIndex }
+    ::= { saCmWebAccessTable 1 }
+
+SaCmWebAccessEntry ::= SEQUENCE
+    {
+    saCmWebAccessLevel        INTEGER
+    }
+
+saCmWebAccessLevel OBJECT-TYPE
+    SYNTAX INTEGER {
+        off(0),
+        systemOnly(1),
+        basic(2),
+        advanced(3)
+        }
+    MAX-ACCESS  read-only
+    STATUS current
+    DESCRIPTION
+        "Access level for individual interface."
+    ::= { saCmWebAccessEntry 1 }
+
+-- index 2-4 reserved for Basic type/user/pass
+
+saCmWebAccessAdvancedType  OBJECT-TYPE
+    SYNTAX INTEGER {
+        plain(1),
+        potd(2)
+        }         
+    MAX-ACCESS  read-only
+    STATUS   current
+    DESCRIPTION 
+        "Type of password for advnaced pages."
+    DEFVAL { 1 }
+    ::= { saCmWebAccess 5 }
+
+saCmWebAccessAdvancedUsername  OBJECT-TYPE
+    SYNTAX SnmpAdminString (SIZE (0..40))         
+    MAX-ACCESS  read-only
+    STATUS   current
+    DESCRIPTION 
+        "Username for advanced web pages."
+    DEFVAL { "admin" }
+    ::= { saCmWebAccess 6 }
+
+saCmWebAccessAdvancedPassword  OBJECT-TYPE
+    SYNTAX SnmpAdminString (SIZE (0..40))         
+    MAX-ACCESS  not-accessible
+    STATUS   current
+    DESCRIPTION 
+        "Password (depends on type) for advanced web pages.
+         If type = 1, the password is the string value.
+         If type = 2, the password is the 16-byte octet (hex) string
+                      of MD5 of seed generated by the PoTD tool." 
+    ::= { saCmWebAccess 7 }   
+    
+saCmWebAccessNoActivityTimeout OBJECT-TYPE
+    SYNTAX  INTEGER
+    UNITS "seconds"
+    MAX-ACCESS  read-write
+    STATUS      current
+    DESCRIPTION
+        "Timeout for a web session if no activity is present. If the timer expires, 
+          user will be logged out of Advanced webpage. If 0, web session will not 
+          timeout. Valid values are 0, 30-86400"
+    DEFVAL { 900 }
+    ::= { saCmWebAccess 8 }
+    
+
+-- ======================
+-- END OF WEB ACCESS TREE
+-- ======================
+
+-- =============
+-- CERT DOWNLOAD
+-- =============
+
+saCmIdentityDownload OBJECT IDENTIFIER ::= { dpxCmMibObjects 8 }
+
+saCmIdentityDownloadServer OBJECT-TYPE
+    SYNTAX IpAddress        
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Defines the IP address of TFTP server with identities.
+         For an identity for MAC adress of M1:M2:M3:M4:M5:M6, the
+         filename requested will be M1M2M3/M4/M5/M6.bin.
+         The default value of this object equals the siaddr from DHCP offer."
+    ::= { saCmIdentityDownload 1 }
+
+saCmIdentityDownloadServerDir OBJECT-TYPE
+    SYNTAX SnmpAdminString        
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Defines the relative directory where the certificates are located.
+         For an identity for MAC adress of M1:M2:M3:M4:M5:M6, and the object
+         set to 'cert/test' the filename requested will be
+         cert/test/M1M2M3/M4/M5/M6.bin for device identity and
+         and cert/test/sprca.cer for the SPRCA."
+    DEFVAL { "" }
+    ::= { saCmIdentityDownload 2 }
+
+saCmIdentityDownloadType OBJECT-TYPE   
+    SYNTAX INTEGER {   
+        cm(1),   
+        mta(2),   
+        sprca(3)
+        }   
+    MAX-ACCESS   not-accessible  
+    STATUS       current   
+    DESCRIPTION   
+        "Index for the download table.
+         Device identities are encrypted while SPRCA are not."  
+    ::= { saCmIdentityDownload 3 }   
+
+
+saCmIdentityDownloadTable    OBJECT-TYPE  
+    SYNTAX       SEQUENCE OF SaCmIdentityDownloadEntry  
+    MAX-ACCESS   not-accessible  
+    STATUS       current  
+    DESCRIPTION  
+        "Defines parameters for the identity download." 
+    ::= { saCmIdentityDownload 4 }  
+ 
+saCmIdentityDownloadEntry    OBJECT-TYPE  
+    SYNTAX       SaCmIdentityDownloadEntry  
+    MAX-ACCESS   not-accessible  
+    STATUS       current  
+    DESCRIPTION  
+        "" 
+    INDEX { saCmIdentityDownloadType }  
+    ::= { saCmIdentityDownloadTable 1 }  
+ 
+SaCmIdentityDownloadEntry ::= SEQUENCE { 
+    saCmIdentityDownloadFilename   SnmpAdminString,  
+    saCmIdentityDownloadTimestamp  SnmpAdminString,  
+    saCmIdentityDownloadStatus     INTEGER  
+    }  
+
+saCmIdentityDownloadFilename OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Defines the filename (and path) for Service Provider Root certificate
+         or device identity."
+    ::= { saCmIdentityDownloadEntry 1 }
+
+saCmIdentityDownloadTimestamp OBJECT-TYPE
+    SYNTAX SnmpAdminString (SIZE(12))
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Defines the timestamp (YYYYMMDDHHMM) for the identity download.
+         If the date is later than stored in the modem, the download may proceed.
+         If the date is older or the same than in the modem, nothing happens.
+         If the download is successful, the modem will write the new date to non-vol."
+    ::= { saCmIdentityDownloadEntry 2 }
+
+saCmIdentityDownloadStatus OBJECT-TYPE
+    SYNTAX INTEGER {
+        idle(1),
+        download(2),
+        success(3),
+        errorTimestamp(4),
+        errorServer(5),
+        errorFileNotFound(6),
+        errorBadIdentity(7)
+        }         
+    MAX-ACCESS read-write
+    STATUS current
+    DESCRIPTION
+        "Commands to download the identity when set to download(2).
+         Default value of idle(1) is to ignore download.
+         Possible read-only values returned when queried :
+         - idle(1): the modem has not attmpted to download the identities since last reboot
+         - success(3): downloaded the identities successfully
+         - errorTimestamp(4): the timestamp specified is not newer that in the modem
+         - errorServer(5): TFTP server did not respond
+         - errorFileNotFound(6): no identity file on the server
+         - errorBadIdentity(7): the identity file is not good"
+    DEFVAL { 1 }
+    ::= { saCmIdentityDownloadEntry 3 }
+
+-- ====================
+-- END OF CERT DOWNLOAD
+-- ====================
+
+saCmStbSpecific OBJECT IDENTIFIER ::= { dpxCmMibObjects 9 }
+-- SETTOP SPECIFIC, maintained externally.
+
+-- =====================================
+-- PUF table
+-- =====================================
+--
+-- This table defines PUF table
+--
+
+saPUF OBJECT IDENTIFIER ::= { dpxCmMibObjects 10 }
+
+saPUFTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF SaPUFEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table of PowerUp Frequencies scanned first."
+	::= { saPUF 1 }
+	
+saPUFEntry OBJECT-TYPE
+	SYNTAX SaPUFEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A row in the table that specifies a single frequency."
+	INDEX { saPUFIndex }
+	::= { saPUFTable 1 }
+
+SaPUFEntry ::=	SEQUENCE {
+		saPUFIndex INTEGER,
+		saPUFRowStatus RowStatus,
+		saPUFFrequency Integer32,
+		saPUFAnnex INTEGER
+	}
+
+saPUFIndex OBJECT-TYPE
+	SYNTAX INTEGER (1..32)
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"Indicates the instance of this table row."
+	::= { saPUFEntry 1 }
+	
+saPUFRowStatus OBJECT-TYPE
+	SYNTAX RowStatus
+	MAX-ACCESS read-write  
+--	MAX-ACCESS read-create //see note below, shall be read-create HERE ????
+	STATUS current
+	DESCRIPTION
+		"Controls and reflects the status of rows in this table. Rows in this 
+         	table may be created by either the create-and-go or create-and-wait 
+         	paradigms.  There is no restriction on changing values in a row of 
+         	this table while the row is active.  Setting the value of this object 
+         	to active (either directly or indirectly via create-and-go) will cause 
+         	the row to be written to non-volatile storage.  Changing the value of
+         	saPUFFrequency while the row is active will also cause the
+         	row to be written to non-volatile storage."
+
+	::= { saPUFEntry 2 }
+	
+saPUFFrequency OBJECT-TYPE
+	SYNTAX Integer32 (93000000..999000000)
+	MAX-ACCESS read-create	
+	STATUS current
+	DESCRIPTION
+		"Frequency in Hz"
+	::= { saPUFEntry 3 }  
+
+saPUFAnnex OBJECT-TYPE
+         SYNTAX INTEGER {
+            annexA(0),
+            annexB(1)
+        }
+        MAX-ACCESS read-write
+        STATUS     current
+        DESCRIPTION
+            "Annex mode for the frequency"
+        DEFVAL { 0 }
+     ::= { saPUFEntry 4 }	
+-- =====================================
+-- LKF table
+-- =====================================
+--
+-- This table defines LKF table
+--
+
+saLKF OBJECT IDENTIFIER ::= { dpxCmMibObjects 11 }   
+
+saLKFTable OBJECT-TYPE
+	SYNTAX SEQUENCE OF SaLKFEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A table of Last Known Frequencies."
+	::= { saLKF 1 }
+	
+saLKFEntry OBJECT-TYPE
+	SYNTAX SaLKFEntry
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+		"A row in the table that specifies a single frequency."
+	INDEX { saLKFIndex }
+	::= { saLKFTable 1 } 
+	
+SaLKFEntry ::= 
+	SEQUENCE {
+		saLKFIndex INTEGER,
+		saLKFFrequency Integer32
+		}              
+		
+saLKFIndex OBJECT-TYPE 
+	SYNTAX INTEGER (1..10)
+	MAX-ACCESS not-accessible
+	STATUS current
+	DESCRIPTION
+	"Indicates the instance of this table row."
+	::= { saLKFEntry 1 }  
+	
+saLKFFrequency OBJECT-TYPE
+	SYNTAX Integer32
+	MAX-ACCESS read-create
+	STATUS current
+	DESCRIPTION
+		"Frequency in Hz"
+	::= { saLKFEntry 2 }
+                           	
+
+-- NOTE: (section 7.3. in rfc2578)
+--  If any columnar object in a conceptual row has "read-create" as its
+--  maximal level of access, then no other columnar object of the same
+--  conceptual row may have a maximal access of "read-write".  (Note that
+--  "read-create" is a superset of "read-write".)
+
+END

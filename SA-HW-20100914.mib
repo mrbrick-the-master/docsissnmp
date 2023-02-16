@@ -1,0 +1,482 @@
+--**************************************************************************
+--                                                                          
+--    Copyright 2010 Cisco Systems Inc.                                  
+--    All Rights Reserved                                                   
+--    No portions of this material may be reproduced in any
+--    form without the written permission of:                                                
+--             Cisco Systems Inc.                                          
+--             5030 Sugarloaf Pkwy                                     
+--             Lawrenceville, Georgia 30044                                    
+--                                                                          
+--**************************************************************************
+
+SA-HARDWARE-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS
+        MODULE-IDENTITY, 
+        OBJECT-TYPE,
+        enterprises 
+                FROM SNMPv2-SMI
+        SnmpAdminString 
+                FROM SNMP-FRAMEWORK-MIB;
+
+sa           OBJECT IDENTIFIER ::= { enterprises 1429 }
+saVoip       OBJECT IDENTIFIER ::= { sa 78 }
+                
+saHardware   MODULE-IDENTITY
+        LAST-UPDATED    "201004270000Z"
+        ORGANIZATION    "Cisco Systems Inc."
+        CONTACT-INFO    "ramanis@cisco.com"
+        DESCRIPTION
+            "This tree can be read from any IP in a device."
+
+        -- History
+	REVISION	"201004270000Z"
+	DESCRIPTION
+		"Added usb203380G(5) value to saHwUsbType"
+
+        REVISION		"1004070000Z"
+       DESCRIPTION
+       		"Added tipuma5Tc4800 for saHwDescrMainProcessor"
+       		     
+       REVISION		"200911050000Z"
+       DESCRIPTION
+       		"Added singleBand and dualBand names to 
+       		 WirelessChip type"
+       
+        REVISION     "200910050000Z"
+        DESCRIPTION
+        	"Added items for 
+        		Ethernet Switch type
+        		Wireless chip type
+        		diplexer type ( korea)
+        		main processor ( 3380)
+        		tuner type
+        	 modified
+        		usb type"
+
+        REVISION     "200801170000Z"
+        DESCRIPTION
+        	"Added items for DOCSIS3.0 products
+                 Added DMS tree"
+               
+        REVISION     "200709200000Z"
+        DESCRIPTION
+            "Added le9520ddtc to saHwDescrSlic (1868)"
+
+        REVISION     "200707160000Z"
+        DESCRIPTION
+            "Added saHwDescrDmsType (1637)
+             Added saHwDescrMocaType (1637)
+             Added saHwDescrEthSwitch (1637)"
+
+        REVISION     "200609110000Z"
+        DESCRIPTION
+            "Added bcm3349ipbg to saHwDescrMainProcessor
+             Added bcm3420iml to saHwDescrTuner
+             Added bcm4318 to saHwDescrWirelessChip
+             Added saHwDescrFactoryId (928)"
+
+        REVISION     "200608070000Z"
+        DESCRIPTION
+            "Added bcm3381A1 and bcm3381A2 to saHwDescrMainProcessor
+             Added bcm3420x3 to saHwDescrTuner
+             Added usb20w3381 to saHwDescrUsbType
+             Changed usb20 to usb20wPLX in saHwDescrUsbType"
+
+        REVISION     "200512020000Z"
+        DESCRIPTION
+            "Initial release"
+
+        ::= { saVoip 4 }
+
+
+saHwDescr  OBJECT IDENTIFIER ::= { saHardware 1 }
+
+saHwDescrModel OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 1 }
+
+saHwDescrHardwareVersion OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 2 }
+
+saHwDescrSerialNumber OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 3 }
+
+saHwDescrCmMacAddress OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 4 }
+
+saHwDescrManufactureDate OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 5 }
+
+saHwDescrPowerSupply OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        internal-switching(1),
+        external(2)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 6 }
+
+saHwDescrDiplexer OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        north-america(1),
+        europe(2),
+        japan(3),
+        korea(4)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 7 }
+
+saHwDescrMainProcessor OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        bcm3349(1),
+        bcm3349kfb(2),
+        bcm3368(3),
+        bcm3381A1(4),
+        bcm3381A2(5),
+        bcm3349ipbg(6),
+        tipuma5(7),
+        bcm3361(8),
+        bcm3378(9),
+        bcm3380(10),
+        tipuma5Tc4800(11)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "tipuma5Tc4800(11) value will represent TI chips 4800zdw, 4800zdwg, 4800zdwgu.   
+        and original tipuma5(7)value will represent TI chips 4830zdw,  4830zdwg and 4830zdwgu "
+    ::= { saHwDescr 8 }
+
+saHwDescrTuner OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        bcm3419(1),
+        bcm3420(2),
+        bcm3420x3(3),
+        bcm3420iml(4),
+        mt2170(5),
+        bcm3421(6),
+        bcmInternal(7)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 9 }
+
+saHwDescrSlic OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        le9500b(1),
+        le9500c(2),
+        le9500d(3),
+        le9520ddtc(4),
+        le88276(5),
+        le9530d(6)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 10 }
+
+saHwDescrMemoryMain OBJECT-TYPE
+    SYNTAX INTEGER
+    UNITS "Megabytes"
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 11 }
+
+saHwDescrMemoryFlash OBJECT-TYPE
+    SYNTAX INTEGER
+    UNITS "Megabytes"
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 12 }
+
+saHwDescrWirelessType OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        ieee80211b(1),
+        ieee80211g(2),
+        ieee80211n(3)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 13 }
+
+saHwDescrWirelessChip OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        bcm4306(1),
+        bcm4318(2),
+        bcm4318E(3),
+        bcm4322(4),
+        bcm43224-dualBand(5),
+        bcm43225-singleBand(6)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 14 }
+
+saHwDescrDectType OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        north-america(1),
+        europe(2)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 15 }
+
+saHwDescrUsbType OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        usb11(1),
+        usb20wPLX(2),
+        usb20w3381(3),
+        usb20wPuma5(4),
+	   usb203380G(5)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 16 }
+
+saHwDescrFactoryId OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 17 }
+
+saHwDescrDmsType OBJECT-TYPE
+    SYNTAX INTEGER {
+        none(0),
+        dms1(1)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 18 }
+
+saHwDescrMocaType OBJECT-TYPE
+    SYNTAX INTEGER {
+        none(0),
+        en2210(1)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 19 }
+
+saHwDescrEthSwitch OBJECT-TYPE
+    SYNTAX INTEGER {
+        none(0),
+        bcm5325m(1),
+        marv6095f(2),
+        bcm5325e(3),
+        bcm53115s(4),
+        ar3816(5)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescr 20 }
+
+
+
+saHwDescrIntCount OBJECT IDENTIFIER ::= { saHwDescr 101 }
+
+saHwDescrIntCountEthernet OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrIntCount 1 }
+
+saHwDescrIntCountUsb OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrIntCount 2 }
+
+saHwDescrIntCountPhoneLine OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrIntCount 3 }
+
+saHwDescrIntCountMaxBattery OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrIntCount 4 }
+
+saHwDescrIntCountWireless OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrIntCount 5 }
+
+saHwDescrIntCountDect OBJECT-TYPE
+    SYNTAX        INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrIntCount 6 }
+
+
+-- ==============================
+-- DMS TREE
+-- present only with DMS hardware
+-- ==============================
+
+saHwDescrDms OBJECT IDENTIFIER ::= { saHwDescr 102 }
+
+saHwDescrDmsMacAddress OBJECT-TYPE
+    SYNTAX SnmpAdminString
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrDms 1 }
+
+saHwDescrDmsMainProcessor OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        marvell-88f5182-a2-c500(1)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrDms 2 }
+
+saHwDescrDmsMemoryMain OBJECT-TYPE
+    SYNTAX INTEGER
+    UNITS "Megabytes"
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrDms 3 }
+
+saHwDescrDmsMemoryFlash OBJECT-TYPE
+    SYNTAX INTEGER
+    UNITS "Megabytes"
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrDms 4 }
+
+saHwDescrDmsUsbHostType OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        none(0),
+        usb11(1),
+        usb20(2)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrDms 5 }
+
+saHwDescrDmsHddIfType OBJECT-TYPE
+    SYNTAX INTEGER
+        {
+        sata1(1),
+        sata2(2)
+        }
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrDms 6 }
+
+saHwDescrDmsHddId OBJECT-TYPE
+    SYNTAX INTEGER
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        ""
+    ::= { saHwDescrDms 7 }
+
+saHwDescrDmsHddSize OBJECT-TYPE
+    SYNTAX INTEGER
+    UNITS "Gigabytes"
+    MAX-ACCESS    read-only
+    STATUS        current
+    DESCRIPTION
+        "0 if no disk."
+    ::= { saHwDescrDms 8 }
+
+END
