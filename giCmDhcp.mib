@@ -1,0 +1,55 @@
+
+CM-DHCP-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS 
+        OBJECT-TYPE,
+	MODULE-IDENTITY,
+	enterprises
+               FROM SNMPv2-SMI 
+        TruthValue
+                FROM SNMPv2-TC;
+
+ 
+cmDhcp MODULE-IDENTITY
+LAST-UPDATED "200408160000Z"
+ORGANIZATION "General Instrument"
+CONTACT-INFO "Thomas Beifuss
+Postal: 6450 Sequence Dr.
+San Diego, CA 92121
+Tel: +1 619 404-2643
+Fax: +1 619 404-3480
+E-mail: tbeifuss@gi.com"
+
+DESCRIPTION
+"This module defines proprietary MIB variables to support the
+ dhcp features of gi cable modems."
+ 
+REVISION "200408160000Z"
+DESCRIPTION
+"Edited by Kevin Marez
+- Revised MIB description to include the following information:
+Storage, Modification, Default Value and Reset To Factory behavior. "
+
+::= {	enterprises
+	gi(1166)  
+	giproducts(1)
+	cm(19)
+        10
+     }
+
+cmDhcpObjects OBJECT IDENTIFIER ::= { cmDhcp 1 }
+	
+cmDhcpServerEnable OBJECT-TYPE
+        SYNTAX    TruthValue
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+          "This variable controls whether the internal DHCP server is enabled.
+ 		Storage:  Permanent and Dynamic Non-Vol
+		Modification:  Factory and User Config
+		Reset To Factory Defaults:  Default Value"
+		DEFVAL { true }
+    ::= { cmDhcpObjects 1 }
+
+END
+

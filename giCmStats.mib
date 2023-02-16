@@ -1,0 +1,169 @@
+
+CM-STATS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS 
+        OBJECT-TYPE,
+	MODULE-IDENTITY,
+        Counter32,
+	enterprises
+               FROM SNMPv2-SMI
+        TruthValue
+                FROM SNMPv2-TC;
+  
+
+ 
+cmStats MODULE-IDENTITY
+LAST-UPDATED "200408160000Z"
+ORGANIZATION "General Instrument"
+CONTACT-INFO "Thomas Beifuss
+Postal: 6450 Sequence Dr.
+San Diego, CA 92121
+Tel: +1 619 404-2643
+Fax: +1 619 404-3480
+E-mail: tbeifuss@gi.com"
+
+DESCRIPTION
+"This module defines proprietary MIB variables to report statistics
+ from SURFboard cable modems."
+ 
+REVISION "200408160000Z"
+DESCRIPTION
+"Edited by Kevin Marez
+- Revised MIB descriptions to include the following information:
+Storage, Modification, Default Value and Reset To Factory behavior. "
+
+::= {	enterprises
+	gi(1166)  
+	giproducts(1)
+	cm(19)
+        9
+     }
+
+cmStatsObjects OBJECT IDENTIFIER ::= { cmStats 1 }
+	
+-- No longer supported
+cmStatsEtherMbufDiscards OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      obsolete
+        DESCRIPTION
+          "A count of the number of times an MBuf allocation request
+           has failed on the ethernet interface."
+        REFERENCE   ""
+    ::= { cmStatsObjects 1 }
+
+-- No longer supported
+cmStatsHfcMbufDiscards OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      obsolete
+        DESCRIPTION
+          "A count of the number of times an MBuf allocation request
+           has failed on the hfc interface."
+        REFERENCE   ""
+    ::= { cmStatsObjects 2 }
+
+-- No longer supported
+cmStatsEtherDownDiscards OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      obsolete
+        DESCRIPTION
+          "A count of the number of times a packet has been discarded
+           because the ethernet link was down."
+        REFERENCE   ""
+    ::= { cmStatsObjects 3 }
+                      
+-- No longer supported, current products do not have a PLD.
+-- To get the hardware revision, query the system description.                      
+cmStatsPLDRevision OBJECT-TYPE
+        SYNTAX      INTEGER (0..2147483647)
+        MAX-ACCESS  read-only
+        STATUS      obsolete
+        DESCRIPTION
+          "The programmedPLD revision number"
+        REFERENCE   ""
+    ::= { cmStatsObjects 4 } 
+
+cmResetIfCmStatusCounters OBJECT-TYPE
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+          " Set TRUE to set
+               docsIfCmStatusResets                    = 0
+               docsIfCmStatusLostSyncs                 = 0
+               docsIfCmStatusInvalidMaps               = 0
+               docsIfCmStatusInvalidUcds               = 0
+               docsIfCmStatusInvalidRangingResp        = 0
+               docsIfCmStatusInvalidRegistrationResp   = 0
+               docsIfCmStatusT1Timeouts                = 0
+               docsIfCmStatusT2Timeouts                = 0
+               docsIfCmStatusT3Timeouts                = 0
+               docsIfCmStatusT4Timeouts                = 0
+               docsIfCmStatusRangingAborteds           = 0
+            Always returns FALSE when read"
+    ::= { cmStatsObjects 5 }
+
+cmResetCMSignalQualityCounters OBJECT-TYPE
+        SYNTAX      TruthValue
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+          " Set TRUE to set
+               docsIfSigQUnerroreds          = 0
+               docsIfSigQCorrecteds          = 0
+               docsIfSigQUncorrectables      = 0
+            Always returns FALSE when read"
+    ::= { cmStatsObjects 6 }
+
+cmQam256PowerFactorTableVersion OBJECT-TYPE
+      SYNTAX INTEGER(0..255)
+      MAX-ACCESS read-write
+      STATUS current
+      DESCRIPTION
+      	   "The version number of the power table.  If this is set to 255, the
+           default table [0, -10, -15, -15, -15, ...] will be used and all SNMP
+           SNMP gets of the FactorArray will return the default table.  If the 
+           table needs to be changed, a version number of 0 should be used.
+ 		Storage:  Permanent
+		Modification:  Factory
+		Reset To Factory Defaults:  Permanent"
+      ::= { cmStatsObjects 7 }
+
+cmQam256PowerFactorArray OBJECT-TYPE
+      SYNTAX OCTET STRING (SIZE (31))
+      MAX-ACCESS read-write
+      STATUS current
+      DESCRIPTION
+      	   "This is an array of signed character values in tenthDb to be added 
+           to the computed downstream power when in 256 Qam mode. The first 
+           value is applied to a downstream power of +15 db, while the 30'th 
+           value is applied to a downstream power of -15 db. If the TableVersion 
+           is set to 255, the default table is used with values:
+           [0, -10, -15, -15, -15, ... all the rest -15].
+ 		Storage:  Permanent Non-Vol
+		Modification:  Factory
+		Reset To Factory Defaults:  Permanent"
+      ::= { cmStatsObjects 8 }
+
+cmFingerprintSeed OBJECT-TYPE
+      SYNTAX OCTET STRING (SIZE (16))
+      MAX-ACCESS read-write
+      STATUS current
+      DESCRIPTION
+      "This is an array which injected into the image hash"
+      ::= { cmStatsObjects 9 }
+
+cmFingerprintHash OBJECT-TYPE
+      SYNTAX OCTET STRING (SIZE (16))
+      MAX-ACCESS read-only
+      STATUS current
+      DESCRIPTION
+      "This is an array which is created by hashing the
+       seed with the image"
+      ::= { cmStatsObjects 10 } 
+
+
+END
+

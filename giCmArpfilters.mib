@@ -1,0 +1,160 @@
+
+CM-ARPFILTERS-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS 
+        OBJECT-TYPE,
+	MODULE-IDENTITY,
+	Counter32,
+	enterprises
+               FROM SNMPv2-SMI
+	TruthValue 
+		FROM	 SNMPv2-TC;
+
+ 
+cmPrivateArpFilter MODULE-IDENTITY
+LAST-UPDATED "9809011130Z"
+ORGANIZATION "General Instrument"
+CONTACT-INFO "Steven Keller
+Postal: 6450 Sequence Dr.
+San Diego, CA 92121
+Tel: +1 619 404-2286
+Fax: +1 619 404-3480
+E-mail: skeller@gi.com"
+
+DESCRIPTION
+"This module defines proprietary MIB variables for prevention of
+ARP storms."
+::= {	enterprises
+	gi(1166)  
+	giproducts(1)
+	cm(19)
+	2 }
+
+-- ::= { giproducts 19 }
+-- gi   OBJECT IDENTIFIER ::= {	iso
+--				org(3)
+--				dod(6)
+--				internet(1)
+--				private(4)
+--				enterprises(1)
+--				1166             }
+-- giproducts	OBJECT IDENTIFIER ::= { gi 1 }
+--
+--  From the GI common MIBs:  cm
+--
+-- cm 		OBJECT IDENTIFIER ::= { giproducts 19 }
+--
+-- (other cm MIB variables:  {cm 127} is the chipsets module
+-- for the deprecated chipsets variable in the ifMIB;
+-- {cm 63} is the proposed OID for the IGMP Proxy MIB, which is
+-- currently in development)
+--
+-- cmPrivateBase   OBJECT IDENTIFIER ::= { cm 1 }
+-- cmPrivateArpFilter OBJECT IDENTIFIER ::= { cm 2 }
+-- cmPrivateDebug  OBJECT IDENTIFIER ::= { cm 61 }
+-- cmPrivateTraps  OBJECT IDENTIFIER ::= { cm 62 }
+
+
+
+cmArpFilterEnabled OBJECT-TYPE
+        SYNTAX    TruthValue
+        MAX-ACCESS  read-write
+        STATUS      current
+--      ACCESS      read-write
+--      STATUS      mandatory
+        DESCRIPTION
+          "This variable enables and disables ARP storm filtering."
+        REFERENCE   ""
+    ::= { cmPrivateArpFilter 1 }
+
+
+cmArpFilterInterval OBJECT-TYPE
+        SYNTAX    INTEGER ( 1..2147483647 )
+	UNITS     "tenths of a second"
+        MAX-ACCESS  read-write
+        STATUS      current
+--      ACCESS      read-write
+--      STATUS      mandatory
+        DESCRIPTION
+          "This variable indicates the interval over which ARPs are
+	rate-limited."
+
+        REFERENCE   ""
+    ::= { cmPrivateArpFilter 2 }
+
+
+cmArpFilterLimit OBJECT-TYPE
+        SYNTAX    INTEGER ( 1..2147483647 )
+        MAX-ACCESS  read-write
+        STATUS      current
+--      ACCESS      read-write
+--      STATUS      mandatory
+        DESCRIPTION
+          "This variable indicates how many ARPs are allowed per
+	interval (second?).  Notice that a value of zero is not allowed,
+	which would prevent all ARPs from being transmitted."
+        REFERENCE   ""
+    ::= { cmPrivateArpFilter 3 }
+
+
+cmArpFilterInArps OBJECT-TYPE
+        SYNTAX    Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+--      ACCESS      read-only
+--      STATUS      mandatory
+        DESCRIPTION
+          "This variable indicates how many ARPS have been received
+	by the CM from the Ethernet interface since the last power-up."
+        REFERENCE   ""
+    ::= { cmPrivateArpFilter 4 }
+
+
+cmArpFilterOutArps OBJECT-TYPE
+        SYNTAX    Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+--      ACCESS      read-only
+--      STATUS      mandatory
+        DESCRIPTION
+          "This variable indicates how many ARPS have been forwarded
+	by the CM from the Ethernet interface to the HFC interface
+	since the last power-up."
+        REFERENCE   ""
+    ::= { cmPrivateArpFilter 5 }
+
+
+cmArpFilterInArpsThisFilter OBJECT-TYPE
+        SYNTAX    Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+--      ACCESS      read-only
+--      STATUS      mandatory
+        DESCRIPTION
+          "This variable indicates how many ARPS have been received
+	by the CM from the Ethernet interface since the filter was created.
+	Notice that 'modifying' the filter parameters may result in the
+	filter being deleted and recreated with the new value, causing the
+	counter to be reset."
+        REFERENCE   ""
+    ::= { cmPrivateArpFilter 6 }
+
+
+cmArpFilterOutArpsThisFilter OBJECT-TYPE
+        SYNTAX    Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+--      ACCESS      read-only
+--      STATUS      mandatory
+        DESCRIPTION
+          "This variable indicates how many ARPS have been forwarded
+	by the CM from the Ethernet interface to the HFC interface
+	since the filter was created.
+	Notice that 'modifying' the filter parameters may result in the
+	filter being deleted and recreated with the new value, causing the
+	counter to be reset."
+        REFERENCE   ""
+    ::= { cmPrivateArpFilter 7 }
+
+END
+

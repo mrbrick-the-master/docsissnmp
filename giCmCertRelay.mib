@@ -1,0 +1,207 @@
+
+CM-CERTRELAY-MIB DEFINITIONS ::= BEGIN
+
+IMPORTS 
+        OBJECT-TYPE,
+	MODULE-IDENTITY,
+	enterprises, Counter32     
+               FROM SNMPv2-SMI
+        InetAddressType, 
+        InetAddress 
+               FROM INET-ADDRESS-MIB; 
+      
+cmCertRelay MODULE-IDENTITY
+LAST-UPDATED "0202061130Z"
+ORGANIZATION "Motorola"
+CONTACT-INFO "Jason Krasnow
+Postal: 6450 Sequence Dr.
+San Diego, CA 92121
+Tel: +1 858 404-2577
+Fax: +1 858 404-3480
+E-mail: jason@motorola.com"
+
+DESCRIPTION
+"This module defines proprietary MIB variables to support the
+ certificate relay agent used in the get certificate protocol."
+::= {	enterprises
+	gi(1166)  
+	giproducts(1)
+	cm(19)
+        26
+     }
+
+cmCertRelayObjects OBJECT IDENTIFIER ::= { cmCertRelay 1 }
+	
+cmCertRelayAdminStatus OBJECT-TYPE
+        SYNTAX    INTEGER {
+            enabled(1),
+            disabled(2)
+        }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+          "This object is used to enable and disable the Certificate 
+           Relay Agent.  If set to 'enabled (1)' the Certificate Relay
+           Agent performs the network address translation and forwards 
+           GetCert protocol messages between the HFC and Ethernet 
+           interfaces.  If set to 'disabled (2)' the Certificate Relay 
+           Agent halts processing of GetCert protocol messages."
+        REFERENCE   ""
+        DEFVAL { enabled }
+    ::= { cmCertRelayObjects 1 }
+
+cmCertRelayGetCertReqFwds OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "The number of GetCert-request messages processed and 
+           forwarded by the Certificate Relay Agent."
+        REFERENCE   ""
+    ::= { cmCertRelayObjects 2 }
+
+cmCertRelayGetCertRspFwds OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "The number of GetCert-response messages processed and 
+           forwarded by the Certificate Relay Agent"
+        REFERENCE   ""
+    ::= { cmCertRelayObjects 3 }
+
+cmCertRelayInUnknownProtos OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "The number of packets discarded by the Certificate Relay 
+           Agent due to an unknown opcode."
+        REFERENCE   ""
+    ::= { cmCertRelayObjects 4 }
+
+cmCertRelayInDiscards OBJECT-TYPE
+        SYNTAX      Counter32
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "The total number of packets discarded by the Certificate 
+           Relay Agent due to an error."
+        REFERENCE   ""
+    ::= { cmCertRelayObjects 5 }
+
+cmCertRelayPrivatePort OBJECT-TYPE 
+      SYNTAX      INTEGER 
+      MAX-ACCESS  read-write 
+      STATUS      current 
+      DESCRIPTION 
+         "The port number that the Relay Agent uses to listen for 
+          Get Certificate request messages on it's private interface." 
+      DEFVAL {900}
+      ::= { cmCertRelayObjects 6 }
+      
+ cmCertRelayLoggingControl OBJECT-TYPE
+        SYNTAX INTEGER {
+            enabled(0),
+            disabled(1)
+         }
+        MAX-ACCESS  read-write
+        STATUS      current
+        DESCRIPTION
+            "Controls the logging of messages associated with upgrading
+             a certificate."
+        DEFVAL {enabled}
+        ::= { cmCertRelayObjects 7 }
+        
+ cmCertRelayCertServerInetAddressType OBJECT-TYPE 
+      SYNTAX      InetAddressType 
+      MAX-ACCESS  read-write
+      STATUS      current 
+      DESCRIPTION 
+         "The type of IP address of cmCertRelayCertServerInetAddress. "
+      DEFVAL{ipv4}           
+      ::= { cmCertRelayObjects 8 }
+             
+ cmCertRelayCertServerInetAddress OBJECT-TYPE 
+      SYNTAX      InetAddress 
+      MAX-ACCESS  read-write 
+      STATUS      current 
+      DESCRIPTION 
+         "The IP address of the Certificate Server." 
+      DEFVAL {""}
+      ::= { cmCertRelayObjects 9 }
+      
+  cmCertRelayCertServerPort OBJECT-TYPE 
+      SYNTAX      INTEGER 
+      MAX-ACCESS  read-write 
+      STATUS      current 
+      DESCRIPTION 
+         "The port number that the Certificate Server uses to listen for 
+          Get Certificate request messages." 
+      DEFVAL {900}
+      ::= { cmCertRelayObjects 10 }
+      
+ cmCertRelayPublicInetAddressType OBJECT-TYPE 
+      SYNTAX      InetAddressType 
+      MAX-ACCESS  read-write
+      STATUS      current 
+      DESCRIPTION 
+         "The type of IP address of cmCertRelayPublicInetAddress. "
+      DEFVAL{ipv4}           
+      ::= { cmCertRelayObjects 11 }
+
+ cmCertRelayPublicInetAddress OBJECT-TYPE 
+      SYNTAX      InetAddress 
+      MAX-ACCESS  read-write 
+      STATUS      current 
+      DESCRIPTION 
+         "The public IP address of the Relay Agent." 
+      DEFVAL {""}
+      ::= { cmCertRelayObjects 12 }
+      
+ cmCertRelayPublicSubnetMask OBJECT-TYPE 
+      SYNTAX      InetAddress 
+      MAX-ACCESS  read-write 
+      STATUS      current 
+      DESCRIPTION 
+         "The subnet mask of the public network that the relay
+          agent resides on." 
+      DEFVAL {"255.255.255.0"}
+      ::= { cmCertRelayObjects 13 }
+      
+ cmCertRelayPublicPort OBJECT-TYPE 
+      SYNTAX      INTEGER 
+      MAX-ACCESS  read-write 
+      STATUS      current 
+      DESCRIPTION 
+         "The port number that the Relay Agent uses to listen for 
+          Get Certificate request messages on it's public interface." 
+      DEFVAL {901}
+      ::= { cmCertRelayObjects 14 }
+      
+ cmCertRelayGatewayInetAddressType OBJECT-TYPE 
+      SYNTAX      InetAddressType 
+      MAX-ACCESS  read-write
+      STATUS      current 
+      DESCRIPTION 
+         "The type of IP address of cmCertRelayGatewayInetAddress. "
+      DEFVAL{ipv4}           
+      ::= { cmCertRelayObjects 15 }
+
+ cmCertRelayGatewayInetAddress OBJECT-TYPE 
+      SYNTAX      InetAddress 
+      MAX-ACCESS  read-write 
+      STATUS      current 
+      DESCRIPTION 
+         "The IP address of the gateway router on the Relay Agent's
+          public interface (i.e. ethernet)." 
+      DEFVAL {""}
+      ::= { cmCertRelayObjects 16 }      
+
+
+END
+
+
+
+
+

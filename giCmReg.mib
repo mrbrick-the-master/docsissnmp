@@ -1,0 +1,82 @@
+CM-REG-MIB DEFINITIONS ::= BEGIN
+
+
+IMPORTS
+        OBJECT-TYPE,
+	MODULE-IDENTITY,
+	enterprises                  FROM SNMPv2-SMI;
+
+cmRegPrivate MODULE-IDENTITY
+LAST-UPDATED "9901190500Z"
+ORGANIZATION "General Instrument"
+CONTACT-INFO "Carolyn Huynh or Tom Beifuss
+Postal: 6450 Sequence Dr.
+San Diego, CA 92121
+Tel: +1 619 404-3503 or 404-2643
+Fax: +1 619 404-3480
+E-mail: cahuynh@gi.com or tbeifuss@gi.com"
+
+DESCRIPTION
+"This module defines proprietary MIB variables for the General
+Instrument SB2100 line of cable modems."
+::= { 
+	enterprises
+	gi(1166)
+        giproducts(1) cm(19) 5   }
+
+
+--
+-- enterprise identifier for the trap(s)
+--
+-- gi   OBJECT IDENTIFIER ::= {	iso
+--				org(3)
+--				dod(6)
+--				internet(1)
+--				private(4)
+--				enterprises(1)
+--				1166             }
+
+
+-- ::= { giproducts 19 }
+--
+-- gi   OBJECT IDENTIFIER ::= {	iso
+--				org(3)
+--				dod(6)
+--				internet(1)
+--				private(4)
+--				enterprises(1)
+--				1166             }
+--
+-- giproducts	OBJECT IDENTIFIER ::= { gi 1 }
+--
+--  From the GI common MIBs:  cm
+--
+--cm 		OBJECT IDENTIFIER ::= { giproducts 19 }
+--
+-- (other cm MIB variables:  {cm 127} is the chipsets module
+-- for the deprecated chipsets variable in the ifMIB;
+-- {cm 63} is the proposed OID for the IGMP Proxy MIB, which is
+-- currently in development)
+--
+-- cmPrivateBase   OBJECT IDENTIFIER ::= { cm 1 }
+-- cmPrivateArpFilter OBJECT IDENTIFIER ::= { cm 2 }
+-- cmPrivateDebug  OBJECT IDENTIFIER ::= { cm 61 }
+-- cmPrivateTraps  OBJECT IDENTIFIER ::= { cm 62 }
+
+--  
+--  SB2100 PRIVATE TFTP CONFIG MIB VARIABLES
+--
+
+cmRegRsp OBJECT-TYPE
+        SYNTAX OCTET STRING
+        MAX-ACCESS read-only 
+        STATUS current
+        DESCRIPTION "This object allows to retrieve entire REG-RSP data in
+        hex.   Data include SID from Corresponding REG-REQ, Response,
+        Service Class Data if Response = 0, or Service Not Available if
+        Response = Cos failure and Vendor Specific Data if defined in
+        TFTP Config."
+        ::= {  cmRegPrivate 1 } 	
+
+END
+

@@ -1,0 +1,143 @@
+
+CM-PRIVATE-TRAPS-MIB DEFINITIONS ::= BEGIN
+
+
+IMPORTS
+        OBJECT-TYPE,
+	MODULE-IDENTITY,
+	enterprises
+               FROM SNMPv2-SMI
+	TRAP-TYPE
+		FROM RFC-1215
+        DisplayString
+                FROM SNMPv2-TC;
+
+cm MODULE-IDENTITY
+       LAST-UPDATED "200304020000Z"
+       ORGANIZATION "Motorola"
+       CONTACT-INFO 
+           "           Tom Beifuss
+            Postal:    6450 Sequence Dr.
+                       San Diego, CA 92121
+                       USA
+            Tel:       +1 619 404-2643
+            Fax:       +1 619 404-3480
+            E-mail:    tom.beifuss@motorola.com"
+
+       DESCRIPTION
+          "This module defines proprietary Trap MIB variables for 
+           the SURFboard line of cable modems."
+        ::= { 
+	       enterprises
+	       gi(1166)
+               giproducts(1)      
+               21      }
+
+
+
+cmPrivateTraps  OBJECT IDENTIFIER ::= { cm 62 }
+
+
+cmTrapIdentifier OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "This object identifies the trap (alarm) issued by the
+           network element."
+        REFERENCE   "CCITT Rec X.733 Section 8.1.2.1"
+    ::= { cmPrivateTraps 1 }
+
+
+cmTrapSeverity  OBJECT-TYPE
+        SYNTAX      INTEGER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "This object indicates the perceived severity of the event which
+           caused the trap."
+        REFERENCE   "CCITT Rec X.733 Section 8.1.2.1"
+    ::= { cmPrivateTraps 2 }
+
+
+cmTrapChangedObjectId OBJECT-TYPE
+        SYNTAX    OBJECT IDENTIFIER
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "This variable identifies the object that has generated the 
+	   trap."
+        REFERENCE   "ITU-T X.730 "
+    ::= { cmPrivateTraps 3 }
+
+
+cmTrapDescr OBJECT-TYPE
+        SYNTAX      DisplayString
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "This variable provides human-readable text describing the
+	   event that caused the trap."
+        REFERENCE   ""
+    ::= { cmPrivateTraps 4 }
+
+
+cmTrapLogEvIndex OBJECT-TYPE
+        SYNTAX      INTEGER (1..2147483647)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "This variable is used in the TrapLog trap, indicating the 
+	   docsDevEvIndex of the corresponding log event.  Notice that
+	   docsDevEvIndex is the index field for the docsDevEventTable,
+	   therefore, this variable can be used as an instance identifier
+	   to locate related information, such as EvFirstTime, EvCount,
+	   and EvId. "
+        REFERENCE   ""
+    ::= { cmPrivateTraps 5 }
+
+cmTrapLogEvId OBJECT-TYPE
+        SYNTAX      INTEGER (1..2147483647)
+        MAX-ACCESS  read-only
+        STATUS      current
+        DESCRIPTION
+          "This variable is used in the TrapLog trap, indicating the 
+           docsDevEvId of the corresponding log event."
+        REFERENCE   ""
+    ::= { cmPrivateTraps 6 }
+
+cmTrapObjectValueChange TRAP-TYPE
+      ENTERPRISE gi
+      VARIABLES
+      { cmTrapIdentifier,
+	cmTrapSeverity,
+        cmTrapChangedObjectId,
+	cmTrapDescr
+      }
+      DESCRIPTION
+        "This trap indicates an object value change that
+         occurred in the agent."
+      ::= 1
+
+cmTrapLog TRAP-TYPE
+      ENTERPRISE gi
+      VARIABLES
+      { cmTrapSeverity,
+        cmTrapLogEvIndex,
+	  cmTrapDescr,
+        cmTrapLogEvId
+      }
+      DESCRIPTION
+        "This trap contains a copy of a log entry;  the 
+	 cmTrapLogEvIndex is the table index of the log entry
+	 in the docsDevEventTable. This trap may be enable/disabled using 
+         the event control facilities in the Cable Device MIB.  
+         Notice that some log entries may fail to be delivered via this trap, 
+         since some log events are generated as a result of RFI registration, 
+         during which time the CM may be unable to communicate via the RF 
+         interface."
+      ::= 2
+
+END
+
+
